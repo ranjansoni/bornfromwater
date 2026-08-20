@@ -1,26 +1,91 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Brand ocean palette layered on Modernist */
+  --color-sand: #f2efe9;
+  --color-surface: #e6e1d8;
+  --color-ink: #12242e;
+  --color-deep: #0e2531;
+  --color-mid: #1d4a5c;
+  --color-accent: #e2542c;
+  --color-accent-600: #c44320;
+  --color-accent-700: #9c3417;
+  --color-accent-100: #fbeee7;
+  --color-sun: #f0a35c;
+  --color-foam: #d9e2e0;
+  --color-divider: color-mix(in srgb, #12242e 38%, transparent);
+
+  /* Modernist: zero radius, everywhere. No exceptions. */
+  --radius-none: 0px;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Modernist rules are binding: no radius, no shadows, flush left. */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Body copy keeps `text-wrap: pretty` per the spec */
+p,
+blockquote,
+li {
+  text-wrap: pretty;
+}
+
+@utility rule-t {
+  border-top: 2px solid var(--color-divider);
+}
+@utility rule-b {
+  border-bottom: 2px solid var(--color-divider);
+}
+@utility rule-l {
+  border-left: 2px solid var(--color-divider);
+}
+@utility rule-r {
+  border-right: 2px solid var(--color-divider);
+}
+
+/* The two horizon gradient bands — the only gradients in the system.
+   The waterline stop is HARD, never blended. Do not add a third. */
+@utility horizon-hero {
+  background: linear-gradient(
+    180deg,
+    #f0a35c 0%,
+    #e9c69b 32%,
+    #1d4a5c 33%,
+    #0e2531 100%
+  );
+}
+@utility horizon-tide {
+  background: linear-gradient(
+    180deg,
+    #f0a35c 0%,
+    #e0b184 26%,
+    #1d4a5c 27%,
+    #0e2531 100%
+  );
+}
+@utility horizon-closing {
+  background: linear-gradient(180deg, #1d4a5c 0%, #0e2531 100%);
 }

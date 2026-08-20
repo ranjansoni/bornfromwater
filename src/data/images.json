@@ -1,0 +1,302 @@
+{
+  "protection": [
+    {
+      "file": "01.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "02.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "03.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "04.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "05.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "06.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "07.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "08.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "09.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "10.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "11.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "12.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "13.jpg",
+      "kind": "graphic"
+    }
+  ],
+  "quiet-strength": [
+    {
+      "file": "01.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "02.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "03.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "04.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "05.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "06.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "07.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "08.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "09.jpg",
+      "kind": "graphic"
+    }
+  ],
+  "new-beginnings": [
+    {
+      "file": "01.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "02.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "03.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "04.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "05.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "06.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "07.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "08.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "09.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "10.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "11.jpg",
+      "kind": "graphic"
+    }
+  ],
+  "ocean-mist": [
+    {
+      "file": "01.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "02.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "03.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "04.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "05.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "06.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "07.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "08.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "09.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "10.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "11.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "12.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "13.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "14.jpg",
+      "kind": "graphic"
+    }
+  ],
+  "pure-heart": [
+    {
+      "file": "01.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "02.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "03.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "04.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "05.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "06.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "07.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "08.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "09.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "10.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "11.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "12.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "13.jpg",
+      "kind": "graphic"
+    }
+  ],
+  "crystal-tide": [
+    {
+      "file": "01.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "02.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "03.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "04.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "05.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "06.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "07.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "08.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "09.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "10.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "11.jpg",
+      "kind": "graphic"
+    },
+    {
+      "file": "12.jpg",
+      "kind": "photo"
+    }
+  ]
+}
