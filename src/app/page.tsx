@@ -50,18 +50,7 @@ export default function Home() {
       </section>
 
       <section className="rule-b">
-        <div className="flex justify-center px-6 py-10 md:px-12 md:py-12">
-          <Image
-            src="/site/brand-logo.png"
-            alt="Born From Water — Rising. Blooming. Becoming."
-            width={791}
-            height={662}
-            sizes="(max-width: 640px) calc(100vw - 48px), 460px"
-            className="h-auto w-full max-w-[460px]"
-          />
-        </div>
-
-        <div className="rule-t flex flex-col items-start gap-[22px] px-6 py-14 md:px-12 md:pt-18 md:pb-14">
+        <div className="flex flex-col items-start gap-[22px] px-6 py-14 md:px-12 md:pt-18 md:pb-14">
           <p className="text-[12px] tracking-[0.16em] text-accent-700 uppercase">
             Handcrafted gold-filled gemstone bracelets
           </p>
