@@ -73,7 +73,7 @@ export default function About() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Button
-            href="https://www.instagram.com/bornfromwater"
+            href="https://www.instagram.com/born.from.water/"
             variant="secondary"
           >
             Instagram
