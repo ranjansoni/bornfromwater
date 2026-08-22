@@ -34,22 +34,19 @@ const SHOW_REVIEW = true;
 export default function Home() {
   return (
     <>
-      {/* Hero band — the Etsy shop cover photo at its native 2.5:1. It runs
-          full width rather than sitting in the design's right-hand hero panel,
-          because a 1.25:1 panel cropped half the image away and took the
-          branded box, the shells and the sun with it. The horizon gradient
-          stays behind it as the loading and fallback ground. */}
-      {/* min-height keeps the band from becoming a sliver on narrow screens;
-          at 180px it crops ~17% of the width, which still clears the box. */}
-      <section className="horizon-hero rule-b relative max-h-[600px] min-h-[180px] w-full overflow-hidden aspect-[2.5/1]">
-        <Image
-          src="/site/shop-banner.jpg"
-          alt="Six Born From Water bracelets laid on coral rock at the shoreline, beside the branded gift box and shells"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+      <section className="horizon-hero rule-b relative max-h-[720px] min-h-[220px] w-full overflow-hidden aspect-video">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/site/shop-banner.jpg"
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/site/homepage-banner.mp4" type="video/mp4" />
+        </video>
       </section>
 
       <section className="rule-b">
