@@ -7,7 +7,7 @@ import { ETSY_SHOP, liveProducts, TIDE_LIVE } from "@/lib/products";
 const stats = [
   { n: "14k", label: "Gold-filled" },
   { n: "Waterproof", label: "Everyday wear" },
-  { n: "Vancouver", label: "Made by hand" },
+  { n: "Vancouver", label: "Handcrafted with Intention" },
 ];
 
 const care = [
