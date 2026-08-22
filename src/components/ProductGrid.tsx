@@ -45,10 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
 
       <p className="mt-2 text-[14px] text-mid">{product.blurb}</p>
 
-      {/* margin-top:auto keeps every price rule aligned across a row,
-          regardless of how long the blurb runs. */}
-      <div className="rule-t mt-auto flex items-center justify-between gap-4 pt-2.5">
-        <span className="text-[16px] font-extrabold">{product.price}</span>
+      <div className="rule-t mt-auto flex justify-end pt-2.5">
         <a
           href={product.etsyUrl}
           target="_blank"

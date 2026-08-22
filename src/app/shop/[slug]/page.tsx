@@ -173,8 +173,6 @@ export default async function ProductPage({ params }: Params) {
             </p>
           )}
 
-          <p className="text-[26px] font-extrabold">{product.price}</p>
-
           <dl className="rule-t w-full">
             {specs.map((s, i) => (
               <div
@@ -199,7 +197,7 @@ export default async function ProductPage({ params }: Params) {
               href={product.etsyUrl}
               className="w-full px-5 py-[14px]"
             >
-              Buy on Etsy — {product.price}
+              Buy on Etsy
             </Button>
             <p className="mt-3 text-[13px] text-mid">
               Checkout, payment and delivery are handled by Etsy.
@@ -241,7 +239,6 @@ export default async function ProductPage({ params }: Params) {
                   <h3 className="mt-3 text-[16px] font-extrabold group-hover:text-accent">
                     {p.name}
                   </h3>
-                  <p className="mt-1 text-[14px] text-mid">{p.price}</p>
                 </Link>
               );
             })}
