@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "./Button";
-import { ETSY_SHOP, TIDE_LIVE } from "@/lib/products";
+import { TIDE_LIVE } from "@/lib/products";
 
 const nav = [
   { label: "Shop", href: "/" },
@@ -39,11 +38,6 @@ export function Header() {
               </Link>
             ))}
           </nav>
-
-          {/* The only conversion action — stays visible at every width. */}
-          <Button href={ETSY_SHOP} variant="primary">
-            Shop on Etsy
-          </Button>
 
           <button
             type="button"
