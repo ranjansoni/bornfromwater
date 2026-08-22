@@ -103,10 +103,10 @@ export default function Home() {
           story copy is intentionally longer than the image panel. */}
       <section className="rule-b grid grid-cols-1 md:grid-cols-[1fr_1.1fr]">
         <div className="relative w-full min-w-0 md:rule-r">
-          <div className="relative min-h-[320px] w-full overflow-hidden md:sticky md:top-0 md:h-[560px] md:min-h-0">
+          <div className="relative min-h-[500px] w-full overflow-hidden md:sticky md:top-0 md:h-[760px] md:min-h-0">
             <Image
-              src="/site/story.jpg"
-              alt="A gold-filled gemstone bracelet laid on woven cloth"
+              src="/site/story-bracelets.png"
+              alt="Born From Water gemstone bracelets arranged on coral rock beside the ocean"
               fill
               sizes="(max-width: 768px) 100vw, 45vw"
               className="object-cover"
