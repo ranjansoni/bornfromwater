@@ -194,8 +194,8 @@ export default function Home() {
               Tide
             </h2>
             <p className="max-w-[46ch] text-[15px] text-mid">
-              Drawn from the movement of water — high tide, low tide, and the
-              line the sea leaves behind.
+              Peridot, aquamarine and amethyst — three pieces drawn from the
+              movement and colour of the sea.
             </p>
           </Link>
         ) : (

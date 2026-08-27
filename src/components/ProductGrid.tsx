@@ -22,7 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
         href={`/shop/${product.slug}`}
         className="relative block aspect-4/5 w-full overflow-hidden bg-surface"
       >
-        {img && (
+        {img ? (
           <Image
             src={img.src}
             alt={product.name}
@@ -30,6 +30,15 @@ export function ProductCard({ product }: { product: Product }) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover"
           />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-accent-100 px-6 text-center">
+            <span className="text-[11px] tracking-[0.18em] text-accent-700 uppercase">
+              Born From Water · Tide
+            </span>
+            <span className="text-[22px] font-extrabold tracking-[-0.02em]">
+              Photography coming soon
+            </span>
+          </div>
         )}
       </Link>
 
@@ -46,14 +55,20 @@ export function ProductCard({ product }: { product: Product }) {
       <p className="mt-2 text-[14px] text-mid">{product.blurb}</p>
 
       <div className="rule-t mt-auto flex justify-end pt-2.5">
-        <a
-          href={product.etsyUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase hover:text-accent hover:underline"
-        >
-          Buy on Etsy →
-        </a>
+        {product.placeholder ? (
+          <span className="text-[12px] font-extrabold tracking-[0.12em] text-mid uppercase">
+            Listing coming soon
+          </span>
+        ) : (
+          <a
+            href={product.etsyUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase hover:text-accent hover:underline"
+          >
+            Buy on Etsy →
+          </a>
+        )}
       </div>
     </article>
   );

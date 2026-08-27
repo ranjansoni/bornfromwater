@@ -101,7 +101,7 @@ export default async function ProductPage({ params }: Params) {
       <section className="rule-b grid grid-cols-1 md:grid-cols-2">
         {/* Gallery — every image from the Etsy listing, in listing order. */}
         <div className="md:rule-r">
-          {primary && (
+          {primary ? (
             <div className="rule-b relative aspect-square w-full overflow-hidden bg-surface">
               <Image
                 src={primary.src}
@@ -111,6 +111,15 @@ export default async function ProductPage({ params }: Params) {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover"
               />
+            </div>
+          ) : (
+            <div className="rule-b flex aspect-square w-full flex-col items-center justify-center gap-3 bg-accent-100 px-6 text-center">
+              <span className="text-[11px] tracking-[0.18em] text-accent-700 uppercase">
+                Born From Water · Tide
+              </span>
+              <span className="text-[26px] font-extrabold tracking-[-0.02em]">
+                Photography coming soon
+              </span>
             </div>
           )}
           {rest.length > 0 && (
@@ -192,16 +201,24 @@ export default async function ProductPage({ params }: Params) {
           </dl>
 
           <div className="w-full">
-            {/* Label stays flush left — Modernist rule, do not centre it. */}
-            <Button
-              href={product.etsyUrl}
-              className="w-full px-5 py-[14px]"
-            >
-              Buy on Etsy
-            </Button>
-            <p className="mt-3 text-[13px] text-mid">
-              Checkout, payment and delivery are handled by Etsy.
-            </p>
+            {product.placeholder ? (
+              <p className="border-2 border-divider bg-surface px-5 py-[14px] text-[13px] font-extrabold tracking-[0.08em] uppercase">
+                Etsy listing coming soon
+              </p>
+            ) : (
+              <>
+                {/* Label stays flush left — Modernist rule, do not centre it. */}
+                <Button
+                  href={product.etsyUrl}
+                  className="w-full px-5 py-[14px]"
+                >
+                  Buy on Etsy
+                </Button>
+                <p className="mt-3 text-[13px] text-mid">
+                  Checkout, payment and delivery are handled by Etsy.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="rule-t w-full pt-5">

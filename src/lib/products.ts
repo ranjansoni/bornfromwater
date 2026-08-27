@@ -61,13 +61,8 @@ export const products: Product[] = (raw as RawProduct[]).map((p) => ({
   })),
 }));
 
-/**
- * Tide is built but hidden: its data is invented and its Etsy links are dead.
- * Everything public filters through here. Flip `TIDE_LIVE` to true once real
- * names, prices, photography and listing URLs land — and strip the
- * `placeholder` flags in products.json at the same time.
- */
-export const TIDE_LIVE = false;
+/** Tide is public with named placeholder listings until photography arrives. */
+export const TIDE_LIVE = true;
 
 /** Products safe to show in public listings. */
 export const liveProducts = products.filter(
