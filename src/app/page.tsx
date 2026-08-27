@@ -28,8 +28,18 @@ const care = [
   },
 ];
 
-/** Only one review exists so far — flip to hide the whole section. */
-const SHOW_REVIEW = true;
+const reviews = [
+  {
+    date: "August 27, 2026",
+    quote:
+      "Beautifully designed! Loved the sparkle of the stones, especially when I wore it during sunny days. Worth it!",
+  },
+  {
+    date: "August 15, 2026",
+    quote:
+      "The quality and fitting of this bracelet was perfect. The materials feel premium and the packaging was very nice as well. Will definitely be buying again!",
+  },
+];
 
 export default function Home() {
   return (
@@ -234,24 +244,29 @@ export default function Home() {
         ))}
       </section>
 
-      {SHOW_REVIEW && (
-        <section className="rule-b grid grid-cols-1 gap-12 px-6 py-17 md:grid-cols-[1fr_2fr] md:px-12">
-          <div>
-            <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-              Reviews
-            </p>
-            <p className="mt-4 text-[48px] leading-none font-extrabold">5.0</p>
-            <p className="mt-3 text-[13px] text-mid">
-              ★★★★★ · Etsy, August 2026
-            </p>
-          </div>
-          <blockquote className="text-[24px] leading-[1.25] font-bold tracking-[-0.02em] md:text-[30px]">
-            &ldquo;The quality and fitting of this bracelet was perfect. The
-            materials feel premium and the packaging was very nice as well. Will
-            definitely be buying again!&rdquo;
-          </blockquote>
-        </section>
-      )}
+      <section className="rule-b grid grid-cols-1 gap-12 px-6 py-17 md:grid-cols-[1fr_2fr] md:px-12">
+        <div>
+          <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
+            Reviews
+          </p>
+          <p className="mt-4 text-[48px] leading-none font-extrabold">5.0</p>
+          <p className="mt-3 text-[13px] text-mid">
+            ★★★★★ · 2 Etsy reviews
+          </p>
+        </div>
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
+          {reviews.map((review) => (
+            <figure key={review.date} className="flex flex-col gap-5">
+              <blockquote className="text-[22px] leading-[1.3] font-bold tracking-[-0.02em] md:text-[26px]">
+                &ldquo;{review.quote}&rdquo;
+              </blockquote>
+              <figcaption className="text-[12px] tracking-[0.12em] text-mid uppercase">
+                Etsy · {review.date}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
 
       {/* Closing banner — the second and final horizon gradient. */}
       <section className="horizon-closing flex flex-col items-start gap-7 px-6 py-16 text-sand md:px-12 md:py-22">
