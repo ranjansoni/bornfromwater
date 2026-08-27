@@ -332,5 +332,36 @@
       "file": "08.jpg",
       "kind": "photo"
     }
+  ],
+  "aquamarine-tide": [
+    { "file": "01.jpg", "kind": "photo" },
+    { "file": "02.jpg", "kind": "photo" },
+    { "file": "03.jpg", "kind": "photo" },
+    { "file": "04.jpg", "kind": "photo" },
+    { "file": "05.jpg", "kind": "photo" },
+    { "file": "06.jpg", "kind": "photo" },
+    { "file": "07.jpg", "kind": "photo" },
+    { "file": "08.jpg", "kind": "photo" },
+    { "file": "09.jpg", "kind": "photo" },
+    { "file": "10.jpg", "kind": "photo" },
+    { "file": "11.jpg", "kind": "photo" }
+  ],
+  "amethyst-tide": [
+    { "file": "01.jpg", "kind": "photo" },
+    { "file": "02.jpg", "kind": "photo" },
+    { "file": "03.jpg", "kind": "photo" },
+    { "file": "04.jpg", "kind": "photo" },
+    { "file": "05.jpg", "kind": "photo" },
+    { "file": "06.jpg", "kind": "photo" },
+    { "file": "07.jpg", "kind": "photo" },
+    { "file": "08.jpg", "kind": "photo" },
+    { "file": "09.jpg", "kind": "photo" },
+    { "file": "10.jpg", "kind": "photo" },
+    { "file": "11.jpg", "kind": "photo" },
+    { "file": "12.jpg", "kind": "photo" },
+    { "file": "13.jpg", "kind": "photo" },
+    { "file": "14.jpg", "kind": "photo" },
+    { "file": "15.jpg", "kind": "photo" },
+    { "file": "16.jpg", "kind": "photo" }
   ]
 }

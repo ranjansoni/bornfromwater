@@ -130,26 +130,26 @@
     "slug": "aquamarine-tide",
     "name": "Aquamarine Tide",
     "collection": "tide",
-    "stone": "Aquamarine",
-    "price": "",
-    "blurb": "Photography and final listing details coming soon.",
-    "description": "Aquamarine Tide photography and final listing details are coming soon.",
-    "meaning": "Stone story coming soon.",
-    "etsyUrl": "https://www.etsy.com/ca/shop/BornFromWater",
+    "stone": "Aquamarine + freshwater pearl",
+    "price": "CA$49.00",
+    "blurb": "One luminous pearl. Three serene aquamarine gemstones. Your tide.",
+    "description": "A delicate, lightweight bracelet inspired by the ever-changing rhythm of the tide. Handcrafted in Canada with a 14K gold-filled chain and findings, one freshwater pearl, and three genuine faceted aquamarine gemstones in the intentionally asymmetric design of the Tide Collection.",
+    "meaning": "The birthstone of March, aquamarine is traditionally associated with calm, clarity, and the sea — a meaningful everyday piece in the soft blue colour of water.",
+    "etsyUrl": "https://www.etsy.com/ca/listing/4563200868/aquamarine-pearl-bracelet-14k-gold",
     "images": [],
-    "placeholder": true
+    "placeholder": false
   },
   {
     "slug": "amethyst-tide",
     "name": "Amethyst Tide",
     "collection": "tide",
-    "stone": "Amethyst",
-    "price": "",
-    "blurb": "Photography and final listing details coming soon.",
-    "description": "Amethyst Tide photography and final listing details are coming soon.",
-    "meaning": "Stone story coming soon.",
-    "etsyUrl": "https://www.etsy.com/ca/shop/BornFromWater",
+    "stone": "Amethyst + freshwater pearl",
+    "price": "CA$49.00",
+    "blurb": "One luminous pearl. Three natural amethyst gemstones. Your tide.",
+    "description": "A delicate, lightweight bracelet inspired by the rhythm of the tide. Handcrafted in Canada with a 14K gold-filled chain and findings, one freshwater pearl, and three genuine faceted amethyst gemstones in the intentionally asymmetric design of the Tide Collection.",
+    "meaning": "Amethyst is traditionally associated with calm, clarity, and inner peace, bringing a soft touch of purple to this everyday piece.",
+    "etsyUrl": "https://www.etsy.com/ca/listing/4563198480/amethyst-pearl-bracelet-14k-gold-filled",
     "images": [],
-    "placeholder": true
+    "placeholder": false
   }
 ]
