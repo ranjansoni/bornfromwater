@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   },
   description:
     "Inspired by the ocean. Handcrafted with purpose. Genuine gemstones on 14k gold-filled, finished by hand in Vancouver, Canada.",
+  verification: {
+    google: "89BwsfRezzQEawz5XOhCo1XZLrKl4E-HhFopZPgBx00",
+  },
   openGraph: {
     type: "website",
     locale: "en_CA",
