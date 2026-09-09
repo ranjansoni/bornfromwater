@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import { ProductGrid } from "@/components/ProductGrid";
-import { ETSY_SHOP, liveProducts, TIDE_LIVE } from "@/lib/products";
+import { liveProducts, TIDE_LIVE } from "@/lib/products";
 
 const stats = [
   { n: "14k", label: "Gold-filled" },
@@ -73,7 +73,7 @@ export default function Home() {
             in Vancouver, Canada.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button href={ETSY_SHOP}>Shop the collections</Button>
+            <Button href="#shop">Shop the collections</Button>
             {TIDE_LIVE && (
               <Button href="/collections/tide" variant="secondary">
                 See Tide, new
@@ -224,7 +224,9 @@ export default function Home() {
         )}
       </section>
 
-      <ProductGrid products={liveProducts} filterable={TIDE_LIVE} />
+      <div id="shop">
+        <ProductGrid products={liveProducts} filterable={TIDE_LIVE} />
+      </div>
 
       {/* Care strip */}
       <section className="rule-b grid grid-cols-1 md:grid-cols-3">
@@ -251,7 +253,7 @@ export default function Home() {
           </p>
           <p className="mt-4 text-[48px] leading-none font-extrabold">5.0</p>
           <p className="mt-3 text-[13px] text-mid">
-            ★★★★★ · 2 Etsy reviews
+            ★★★★★ · 2 customer reviews
           </p>
         </div>
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
@@ -261,7 +263,7 @@ export default function Home() {
                 &ldquo;{review.quote}&rdquo;
               </blockquote>
               <figcaption className="text-[12px] tracking-[0.12em] text-mid uppercase">
-                Etsy · {review.date}
+                Customer review · {review.date}
               </figcaption>
             </figure>
           ))}
@@ -273,7 +275,7 @@ export default function Home() {
         <h2 className="max-w-[16ch] text-[40px] leading-[0.95] font-extrabold tracking-[-0.035em] md:text-[84px]">
           A gentle reminder of strength, balance and new beginnings.
         </h2>
-        <Button href={ETSY_SHOP}>Shop every piece on Etsy →</Button>
+        <Button href="#shop">Shop every piece →</Button>
       </section>
     </>
   );

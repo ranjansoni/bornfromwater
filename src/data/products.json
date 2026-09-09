@@ -5,6 +5,8 @@
     "collection": "signature",
     "stone": "Moonstone + peridot",
     "price": "CA$65.00",
+    "priceCents": 6500,
+    "sku": "BFW-NEW-BEGINNINGS",
     "blurb": "Moonstone and peridot, for a fresh start.",
     "description": "Genuine moonstone and peridot on a 14k gold-filled chain, finished with the signature lotus charm — made for the start of a new chapter.",
     "story": {
@@ -15,7 +17,6 @@
       ]
     },
     "meaning": "Moonstone is the stone of new light and intuition; peridot carries renewal and growth. Together they mark a beginning rather than an arrival.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4547759450/14k-gold-filled-dainty-peridot-gemstone",
     "images": []
   },
   {
@@ -24,6 +25,8 @@
     "collection": "signature",
     "stone": "Rose quartz + peridot",
     "price": "CA$65.00",
+    "priceCents": 6500,
+    "sku": "BFW-PURE-HEART",
     "blurb": "Rose quartz and peridot — lead with warmth.",
     "description": "Genuine rose quartz and peridot on a fine 14k gold-filled chain with the signature lotus charm — a reminder that love begins within.",
     "story": {
@@ -34,7 +37,6 @@
       ]
     },
     "meaning": "Rose quartz is worn for love and compassion, peridot for renewal and growth. Together they read as warmth with something new in it.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4550528916/14k-gold-filled-rose-quartz-peridot",
     "images": []
   },
   {
@@ -43,6 +45,8 @@
     "collection": "signature",
     "stone": "Moonstone",
     "price": "CA$65.00",
+    "priceCents": 6500,
+    "sku": "BFW-OCEAN-MIST",
     "blurb": "Moonstone, for the calm of open water.",
     "description": "Genuine moonstone with clear quartz accents on premium 14k gold-filled — lightweight, waterproof, and inspired by the calm of the ocean.",
     "story": {
@@ -53,7 +57,6 @@
       ]
     },
     "meaning": "Moonstone is worn for calm and intuition — a stone that holds light the way water does, without ever settling on a colour.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4547166870/14k-gold-filled-dainty-gemstone-bracelet",
     "images": []
   },
   {
@@ -62,6 +65,8 @@
     "collection": "signature",
     "stone": "Black tourmaline + clear quartz",
     "price": "CA$60.00",
+    "priceCents": 6000,
+    "sku": "BFW-PROTECTION",
     "blurb": "Black tourmaline and clear quartz. Stand rooted.",
     "description": "Genuine black tourmaline with clear quartz accents on a 14k gold-filled chain — grounding and protective, made for everyday wear.",
     "story": {
@@ -72,7 +77,6 @@
       ]
     },
     "meaning": "Black tourmaline is traditionally worn for protection and grounding. Clear quartz sits alongside it for clarity — protection that does not mean hiding.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4549391089/black-tourmaline-bracelet-14k-gold",
     "images": []
   },
   {
@@ -81,6 +85,8 @@
     "collection": "signature",
     "stone": "Peridot + clear quartz",
     "price": "CA$65.00",
+    "priceCents": 6500,
+    "sku": "BFW-CRYSTAL-TIDE",
     "blurb": "Peridot and clear quartz, green through to clear.",
     "description": "Genuine peridot and clear quartz on premium 14k gold-filled — the meeting of earth and water, for the courage to begin again.",
     "story": {
@@ -91,7 +97,6 @@
       ]
     },
     "meaning": "Peridot carries renewal and growth; clear quartz is worn for clarity and intention. Set together, they sharpen a fresh start rather than soften it.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4551399723/peridot-clear-quartz-bracelet-14k-gold",
     "images": []
   },
   {
@@ -100,6 +105,8 @@
     "collection": "signature",
     "stone": "Black tourmaline",
     "price": "CA$55.00",
+    "priceCents": 5500,
+    "sku": "BFW-QUIET-STRENGTH",
     "blurb": "Three tourmaline beads. Nothing else needed.",
     "description": "Genuine black tourmaline set sparely on a premium 14k gold-filled chain — lightweight, waterproof, and quietly grounding.",
     "story": {
@@ -110,7 +117,6 @@
       ]
     },
     "meaning": "Black tourmaline is traditionally worn for grounding — the stone kept close when you need to stay level.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4550779354/black-tourmaline-bracelet-gold-filled",
     "images": []
   },
   {
@@ -119,10 +125,11 @@
     "collection": "tide",
     "stone": "Peridot + freshwater pearl",
     "price": "CA$49.00",
+    "priceCents": 4900,
+    "sku": "BFW-PERIDOT-TIDE",
     "blurb": "One luminous pearl. Three vibrant peridot gemstones. Your tide.",
     "description": "A delicate, lightweight bracelet inspired by the movement and renewal of the tide. Handcrafted in Canada with a 14K gold-filled chain and findings, one freshwater pearl, and three genuine faceted peridot gemstones in the intentionally asymmetric design of the Tide Collection.",
     "meaning": "The birthstone of August, peridot is traditionally associated with renewal, positivity, and new beginnings — a reminder that every tide brings the possibility of renewal.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4563202808/peridot-pearl-bracelet-14k-gold-filled",
     "images": [],
     "placeholder": false
   },
@@ -132,10 +139,11 @@
     "collection": "tide",
     "stone": "Aquamarine + freshwater pearl",
     "price": "CA$49.00",
+    "priceCents": 4900,
+    "sku": "BFW-AQUAMARINE-TIDE",
     "blurb": "One luminous pearl. Three serene aquamarine gemstones. Your tide.",
     "description": "A delicate, lightweight bracelet inspired by the ever-changing rhythm of the tide. Handcrafted in Canada with a 14K gold-filled chain and findings, one freshwater pearl, and three genuine faceted aquamarine gemstones in the intentionally asymmetric design of the Tide Collection.",
     "meaning": "The birthstone of March, aquamarine is traditionally associated with calm, clarity, and the sea — a meaningful everyday piece in the soft blue colour of water.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4563200868/aquamarine-pearl-bracelet-14k-gold",
     "images": [],
     "placeholder": false
   },
@@ -145,10 +153,11 @@
     "collection": "tide",
     "stone": "Amethyst + freshwater pearl",
     "price": "CA$49.00",
+    "priceCents": 4900,
+    "sku": "BFW-AMETHYST-TIDE",
     "blurb": "One luminous pearl. Three natural amethyst gemstones. Your tide.",
     "description": "A delicate, lightweight bracelet inspired by the rhythm of the tide. Handcrafted in Canada with a 14K gold-filled chain and findings, one freshwater pearl, and three genuine faceted amethyst gemstones in the intentionally asymmetric design of the Tide Collection.",
     "meaning": "Amethyst is traditionally associated with calm, clarity, and inner peace, bringing a soft touch of purple to this everyday piece.",
-    "etsyUrl": "https://www.etsy.com/ca/listing/4563198480/amethyst-pearl-bracelet-14k-gold-filled",
     "images": [],
     "placeholder": false
   }

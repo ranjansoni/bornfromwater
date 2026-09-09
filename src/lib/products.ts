@@ -29,14 +29,17 @@ export type Product = {
   name: string;
   collection: Collection;
   stone: string;
-  /** Display-only string including currency. Never parse or convert it. */
+  /** Display string including currency. */
   price: string;
+  /** Authoritative server-side unit price in Canadian cents. */
+  priceCents: number;
+  /** Stable internal SKU used to reconcile this catalogue with GoDaddy. */
+  sku: string;
   blurb: string;
   description: string;
   /** Absent until the piece has an approved story. */
   story?: Story;
   meaning: string;
-  etsyUrl: string;
   images: ProductImage[];
   placeholder: boolean;
 };
@@ -92,4 +95,9 @@ export const collectionLabel: Record<Collection, string> = {
   tide: "Tide",
 };
 
-export const ETSY_SHOP = "https://www.etsy.com/ca/shop/BornFromWater";
+export function formatCad(cents: number): string {
+  return new Intl.NumberFormat("en-CA", {
+    style: "currency",
+    currency: "CAD",
+  }).format(cents / 100);
+}

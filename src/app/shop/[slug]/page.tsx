@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@/components/Button";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import {
   cardImage,
   collectionLabel,
@@ -53,13 +53,11 @@ export default async function ProductPage({ params }: Params) {
     { label: "Stone", value: `${product.stone}, genuine` },
     {
       label: "Sizing",
-      value:
-        "Made to your wrist measurement — add it to the Etsy order note",
+      value: "Made to your wrist measurement — include it in your payment note",
     },
     { label: "Ships from", value: "Vancouver, British Columbia" },
   ];
 
-  // JSON-LD points offers at the Etsy listing — that is where the pieces sell.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -72,7 +70,8 @@ export default async function ProductPage({ params }: Params) {
     material: "14k gold-filled",
     offers: {
       "@type": "Offer",
-      url: product.etsyUrl,
+      url: `https://bornfromwater.ca/shop/${product.slug}`,
+      price: (product.priceCents / 100).toFixed(2),
       priceCurrency: "CAD",
       availability: "https://schema.org/InStock",
     },
@@ -99,7 +98,7 @@ export default async function ProductPage({ params }: Params) {
       </nav>
 
       <section className="rule-b grid grid-cols-1 md:grid-cols-2">
-        {/* Gallery — every image from the Etsy listing, in listing order. */}
+        {/* Gallery — every approved product image in catalogue order. */}
         <div className="md:rule-r">
           {primary ? (
             <div className="rule-b relative aspect-square w-full overflow-hidden bg-surface">
@@ -203,19 +202,13 @@ export default async function ProductPage({ params }: Params) {
           <div className="w-full">
             {product.placeholder ? (
               <p className="border-2 border-divider bg-surface px-5 py-[14px] text-[13px] font-extrabold tracking-[0.08em] uppercase">
-                Etsy listing coming soon
+                Available soon
               </p>
             ) : (
               <>
-                {/* Label stays flush left — Modernist rule, do not centre it. */}
-                <Button
-                  href={product.etsyUrl}
-                  className="w-full px-5 py-[14px]"
-                >
-                  Buy on Etsy
-                </Button>
+                <AddToCartButton slug={product.slug} />
                 <p className="mt-3 text-[13px] text-mid">
-                  Checkout, payment and delivery are handled by Etsy.
+                  Secure payment is processed by GoDaddy Payments.
                 </p>
               </>
             )}

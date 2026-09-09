@@ -37,11 +37,11 @@ const policies = [
   },
   {
     h: "Customs & import taxes",
-    p: "For US deliveries, import duties and fees are included at checkout. Buyers elsewhere may pay on delivery.",
+    p: "Shipping details and any applicable taxes are shown during secure payment.",
   },
   {
     h: "Payment",
-    p: "Handled securely by Etsy: PayPal, Visa, Mastercard, Apple Pay, Klarna and gift cards.",
+    p: "Handled securely by GoDaddy Payments. Card details are never collected or stored by this website.",
   },
   {
     h: "Returns & cancellations",
@@ -68,7 +68,7 @@ const faq = [
   },
   {
     q: "Can I request a custom stone?",
-    a: "Message me on Etsy. Custom combinations are made when the stones are available.",
+    a: "Email bornfromwatercanada@gmail.com. Custom combinations are made when the stones are available.",
   },
   {
     q: "Does it arrive gift-ready?",

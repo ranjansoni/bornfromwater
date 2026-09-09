@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { cardImage, type Collection, type Product } from "@/lib/products";
+import { useCart } from "@/components/CartProvider";
 
 type Filter = Collection | "all";
 
@@ -15,6 +16,7 @@ const headings: Record<Filter, string> = {
 
 export function ProductCard({ product }: { product: Product }) {
   const img = cardImage(product);
+  const { addItem } = useCart();
 
   return (
     <article className="flex flex-col">
@@ -60,14 +62,13 @@ export function ProductCard({ product }: { product: Product }) {
             Listing coming soon
           </span>
         ) : (
-          <a
-            href={product.etsyUrl}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => addItem(product.slug)}
             className="text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase hover:text-accent hover:underline"
           >
-            Buy on Etsy →
-          </a>
+            Add to cart →
+          </button>
         )}
       </div>
     </article>

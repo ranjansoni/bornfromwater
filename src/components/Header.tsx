@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { TIDE_LIVE } from "@/lib/products";
+import { useCart } from "@/components/CartProvider";
 
 const nav = [
   { label: "Shop", href: "/" },
@@ -13,6 +14,7 @@ const nav = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { itemCount, ready } = useCart();
 
   return (
     <header className="rule-b">
@@ -38,6 +40,14 @@ export function Header() {
               </Link>
             ))}
           </nav>
+
+          <Link
+            href="/cart"
+            className="text-[13px] font-extrabold tracking-[0.1em] uppercase hover:text-accent"
+            aria-label={`Cart with ${itemCount} item${itemCount === 1 ? "" : "s"}`}
+          >
+            Cart {ready ? `(${itemCount})` : ""}
+          </Link>
 
           <button
             type="button"
@@ -69,6 +79,12 @@ export function Header() {
               {n.label}
             </Link>
           ))}
+          <Link
+            href="/cart"
+            className="px-6 py-4 text-[13px] font-extrabold tracking-[0.1em] uppercase hover:text-accent"
+          >
+            Cart {ready ? `(${itemCount})` : ""}
+          </Link>
         </nav>
       )}
     </header>

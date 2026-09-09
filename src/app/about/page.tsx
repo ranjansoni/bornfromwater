@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Button } from "@/components/Button";
-import { ETSY_SHOP } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "About",
@@ -84,7 +83,7 @@ export default function About() {
           >
             Pinterest
           </Button>
-          <Button href={ETSY_SHOP}>Shop on Etsy</Button>
+          <Button href="/">Shop the collection</Button>
         </div>
       </section>
     </>

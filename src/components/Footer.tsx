@@ -1,9 +1,6 @@
-import { ETSY_SHOP } from "@/lib/products";
-
 const social = [
   { label: "Instagram", href: "https://www.instagram.com/born.from.water/" },
   { label: "Pinterest", href: "https://www.pinterest.com/bornfromwater" },
-  { label: "Etsy", href: ETSY_SHOP },
 ];
 
 export function Footer() {

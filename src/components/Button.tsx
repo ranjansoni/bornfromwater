@@ -45,7 +45,7 @@ export function Button({
       external?: boolean;
     } & ComponentProps<"a">;
 
-    // Every outbound Etsy link opens in a new tab.
+    // External destinations open separately so the shop remains available.
     if (external || href.startsWith("http")) {
       return (
         <a

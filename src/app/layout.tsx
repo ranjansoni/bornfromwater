@@ -3,6 +3,7 @@ import { Archivo } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CartProvider } from "@/components/CartProvider";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -36,9 +37,11 @@ export default function RootLayout({
   return (
     <html lang="en-CA" className={archivo.variable}>
       <body>
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <CartProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
       <GoogleAnalytics gaId="G-6WYHQZM2XF" />
     </html>
