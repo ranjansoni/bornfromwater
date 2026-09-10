@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   createContext,
   useCallback,
@@ -57,6 +58,10 @@ function sanitizeItems(value: unknown): CartItem[] {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
+  const [notice, setNotice] = useState<{
+    productName: string;
+    quantity: number;
+  } | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -74,8 +79,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (ready) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, ready]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
   const addItem = useCallback((slug: string) => {
-    if (!getProduct(slug)) return;
+    const product = getProduct(slug);
+    if (!product) return;
+    const quantity = Math.min(
+      MAX_QUANTITY,
+      (items.find((item) => item.slug === slug)?.quantity ?? 0) + 1,
+    );
+
     setItems((current) => {
       const existing = current.find((item) => item.slug === slug);
       if (!existing) return [...current, { slug, quantity: 1 }];
@@ -85,7 +102,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : item,
       );
     });
-  }, []);
+    setNotice({ productName: product.name, quantity });
+  }, [items]);
 
   const setQuantity = useCallback((slug: string, quantity: number) => {
     if (!Number.isInteger(quantity)) return;
@@ -130,7 +148,47 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
   }, [items, ready, addItem, setQuantity, removeItem, clearCart]);
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+      {notice ? (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="fixed inset-x-4 bottom-4 z-[100] border-2 border-divider bg-sand p-4 shadow-[6px_6px_0_#9ca3a3] sm:right-6 sm:left-auto sm:w-[420px]"
+        >
+          <div className="flex items-start justify-between gap-5">
+            <div>
+              <p className="text-[13px] leading-[1.5] font-extrabold">
+                ✓ {notice.productName}
+              </p>
+              <p className="mt-1 text-[13px] text-mid">
+                {notice.quantity === 1
+                  ? "Added to your cart."
+                  : `Quantity updated to ${notice.quantity}.`}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              aria-label="Dismiss cart notification"
+              className="text-[18px] leading-none text-mid hover:text-ink"
+            >
+              ×
+            </button>
+          </div>
+          <Link
+            href="/cart"
+            onClick={() => setNotice(null)}
+            className="mt-3 inline-block text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase hover:text-accent hover:underline"
+          >
+            View cart →
+          </Link>
+        </div>
+      ) : null}
+    </CartContext.Provider>
+  );
 }
 
 export function useCart(): CartContextValue {

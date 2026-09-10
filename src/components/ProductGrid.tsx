@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { AddToCartButton } from "@/components/AddToCartButton";
 import { cardImage, type Collection, type Product } from "@/lib/products";
-import { useCart } from "@/components/CartProvider";
 
 type Filter = Collection | "all";
 
@@ -16,7 +16,6 @@ const headings: Record<Filter, string> = {
 
 export function ProductCard({ product }: { product: Product }) {
   const img = cardImage(product);
-  const { addItem } = useCart();
 
   return (
     <article className="flex flex-col">
@@ -62,13 +61,7 @@ export function ProductCard({ product }: { product: Product }) {
             Listing coming soon
           </span>
         ) : (
-          <button
-            type="button"
-            onClick={() => addItem(product.slug)}
-            className="text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase hover:text-accent hover:underline"
-          >
-            Add to cart →
-          </button>
+          <AddToCartButton slug={product.slug} variant="text" />
         )}
       </div>
     </article>
