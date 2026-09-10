@@ -13,6 +13,7 @@ import {
 } from "@/lib/order-store";
 import { verifyOrderToken } from "@/lib/orders";
 import { products } from "@/lib/products";
+import { paymentCurrency } from "@/lib/payment-currency";
 
 export const runtime = "nodejs";
 
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
         decline: markOrderDeclined,
       },
       () => chargeNonce(body.nonce as string, order),
+      paymentCurrency(),
     );
 
     if (result.outcome === "declined") {

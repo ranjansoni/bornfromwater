@@ -1,7 +1,7 @@
 export type PayableOrder = {
   orderId: string;
   totalCents: number;
-  currency: "CAD";
+  currency: "CAD" | "USD";
   paymentStatus: "pending" | "processing" | "approved" | "declined";
   godaddyTransactionId: string | null;
 };
@@ -24,9 +24,10 @@ export async function processOrderPayment(
   authoritativeTotalCents: number,
   store: PaymentStore,
   charge: () => Promise<GatewayResult>,
+  expectedCurrency: "CAD" | "USD" = "CAD",
 ): Promise<GatewayResult> {
   if (
-    order.currency !== "CAD" ||
+    order.currency !== expectedCurrency ||
     !Number.isSafeInteger(authoritativeTotalCents) ||
     authoritativeTotalCents < 100 ||
     order.totalCents !== authoritativeTotalCents
@@ -54,7 +55,7 @@ export async function processOrderPayment(
   }
 
   if (
-    result.currency !== "CAD" ||
+    result.currency !== expectedCurrency ||
     result.totalCents !== authoritativeTotalCents ||
     !result.transactionId
   ) {

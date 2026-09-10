@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ClearPaidCart } from "@/components/ClearPaidCart";
 import { getOrder } from "@/lib/order-store";
 import { verifyOrderToken } from "@/lib/orders";
-import { formatCad } from "@/lib/products";
+import { formatPaymentAmount } from "@/lib/payment-currency";
 
 export const metadata: Metadata = { title: "Order status" };
 export const dynamic = "force-dynamic";
@@ -35,8 +35,11 @@ export default async function OrderStatusPage({ searchParams }: Props) {
           Thank you for your order.
         </h1>
         <p className="mt-5 text-[18px] leading-[1.6]">
-          GoDaddy confirmed your payment of {formatCad(order.totalCents)} CAD.
+          GoDaddy confirmed your payment of {formatPaymentAmount(order.totalCents, order.currency)}.
         </p>
+        {order.currency === "USD" && (
+          <p className="mt-3">USD Test Lab transaction only. No goods will be fulfilled.</p>
+        )}
         <p className="mt-3 text-[14px] text-mid">Order: {order.orderId}</p>
         <Link
           href="/"

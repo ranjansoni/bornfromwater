@@ -4,6 +4,7 @@ import { createPrivateKey, randomUUID, sign } from "node:crypto";
 import type { GatewayResult } from "@/lib/checkout-service";
 import type { StoredOrder } from "@/lib/order-store";
 import { previewChargeDiagnostic } from "@/lib/poynt-diagnostics";
+import { paymentCurrency } from "@/lib/payment-currency";
 
 type PoyntConfig = {
   applicationId: string;
@@ -120,6 +121,9 @@ export function collectConfiguration(): {
 }
 
 export async function chargeNonce(nonce: string, order: StoredOrder): Promise<GatewayResult> {
+  if (order.currency !== paymentCurrency()) {
+    throw new Error("This order uses a different payment currency. Start a new checkout.");
+  }
   const settings = config();
   const token = await accessToken(settings);
   let response: Response;
@@ -142,7 +146,7 @@ export async function chargeNonce(nonce: string, order: StoredOrder): Promise<Ga
           amounts: {
             transactionAmount: order.totalCents,
             orderAmount: order.totalCents,
-            currency: "CAD",
+            currency: order.currency,
           },
           fundingSource: { nonce },
         }),

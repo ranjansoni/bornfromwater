@@ -3,6 +3,7 @@ import "server-only";
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import { randomUUID } from "node:crypto";
 import type { ValidatedCartLine } from "@/lib/orders";
+import { paymentCurrency, type PaymentCurrency } from "@/lib/payment-currency";
 
 export type PaymentStatus = "pending" | "processing" | "approved" | "declined";
 
@@ -16,7 +17,7 @@ export type StoredOrder = {
   orderId: string;
   validatedCart: StoredCartLine[];
   totalCents: number;
-  currency: "CAD";
+  currency: PaymentCurrency;
   paymentStatus: PaymentStatus;
   checkoutRequestId: string;
   godaddyTransactionId: string | null;
@@ -28,7 +29,7 @@ type OrderRow = {
   order_id: string;
   validated_cart: StoredCartLine[];
   total_cents: number;
-  currency: "CAD";
+  currency: PaymentCurrency;
   payment_status: PaymentStatus;
   checkout_request_id: string;
   godaddy_transaction_id: string | null;
@@ -80,14 +81,15 @@ export async function createPendingOrder(
   }));
   const orderId = randomUUID();
   const client = sql();
+  const currency = paymentCurrency();
 
   const inserted = await client.query(
     `INSERT INTO orders (
        order_id, validated_cart, total_cents, currency, payment_status, checkout_request_id
-     ) VALUES ($1, $2::jsonb, $3, 'CAD', 'pending', $4)
+     ) VALUES ($1, $2::jsonb, $3, $5, 'pending', $4)
      ON CONFLICT (checkout_request_id) DO NOTHING
      RETURNING ${SELECT_COLUMNS}`,
-    [orderId, JSON.stringify(validatedCart), totalCents, checkoutRequestId],
+    [orderId, JSON.stringify(validatedCart), totalCents, checkoutRequestId, currency],
   );
 
   const row = (inserted[0] ?? (await client.query(
@@ -109,6 +111,7 @@ export async function createPendingOrder(
       );
     });
   if (
+    order.currency !== currency ||
     order.totalCents !== totalCents ||
     !sameCart
   ) {

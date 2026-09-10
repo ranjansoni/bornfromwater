@@ -4,7 +4,7 @@ import { PoyntCardForm } from "@/components/PoyntCardForm";
 import { collectConfiguration } from "@/lib/godaddy";
 import { getOrder } from "@/lib/order-store";
 import { verifyOrderToken } from "@/lib/orders";
-import { formatCad } from "@/lib/products";
+import { formatPaymentAmount, paymentCurrency } from "@/lib/payment-currency";
 
 export const metadata: Metadata = { title: "Secure payment" };
 export const dynamic = "force-dynamic";
@@ -58,6 +58,7 @@ export default async function PaymentPage({ searchParams }: Props) {
 
   let collect;
   try {
+    if (order.currency !== paymentCurrency()) throw new Error("Currency changed");
     collect = collectConfiguration();
   } catch {
     return (
@@ -76,8 +77,15 @@ export default async function PaymentPage({ searchParams }: Props) {
       </h1>
       <div className="rule-t rule-b mt-8 flex justify-between gap-5 py-6">
         <span className="text-[13px] text-mid">Order total</span>
-        <span className="text-[20px] font-extrabold">{formatCad(order.totalCents)} CAD</span>
+        <span className="text-[20px] font-extrabold">{formatPaymentAmount(order.totalCents, order.currency)}</span>
       </div>
+      {order.currency === "USD" && (
+        <p role="status" className="mt-4 border-2 border-accent p-4">
+          Test Lab only: this test submits USD using the same numeric amount as the CAD
+          catalogue, without currency conversion. Use only your Poynt test card. No goods
+          will be fulfilled. The live store charges CAD.
+        </p>
+      )}
       <PoyntCardForm {...collect} token={token} />
       <Link href="/cart" className="mt-5 inline-block text-[12px] text-accent-700 underline">
         Cancel and return to cart
