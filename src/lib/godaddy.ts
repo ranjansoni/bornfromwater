@@ -3,6 +3,7 @@ import "server-only";
 import { createPrivateKey, randomUUID, sign } from "node:crypto";
 import type { GatewayResult } from "@/lib/checkout-service";
 import type { StoredOrder } from "@/lib/order-store";
+import { previewChargeDiagnostic } from "@/lib/poynt-diagnostics";
 
 type PoyntConfig = {
   applicationId: string;
@@ -161,6 +162,15 @@ export async function chargeNonce(nonce: string, order: StoredOrder): Promise<Ga
   const processorStatus = body.processorResponse?.status?.toUpperCase();
 
   if (!response.ok || status === "DECLINED" || processorStatus === "DECLINED") {
+    const diagnostic = previewChargeDiagnostic(
+      process.env.VERCEL_ENV,
+      response.status,
+      body,
+      order.checkoutRequestId,
+      [nonce, token, settings.privateKey, process.env.POYNT_PRIVATE_KEY,
+        process.env.DATABASE_URL, process.env.ORDER_SIGNING_SECRET],
+    );
+    if (diagnostic) console.error("Poynt SALE Preview diagnostic", diagnostic);
     if (response.status >= 500) {
       console.error("Poynt charge request returned an uncertain error", {
         orderId: order.orderId,
