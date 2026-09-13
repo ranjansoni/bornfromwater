@@ -4,7 +4,7 @@ import { PoyntCardForm } from "@/components/PoyntCardForm";
 import { collectConfiguration } from "@/lib/godaddy";
 import { getOrder } from "@/lib/order-store";
 import { verifyOrderToken } from "@/lib/orders";
-import { formatPaymentAmount, paymentCurrency } from "@/lib/payment-currency";
+import { canDisplayPaymentCurrency, formatPaymentAmount, paymentCurrency } from "@/lib/payment-currency";
 
 export const metadata: Metadata = { title: "Secure payment" };
 export const dynamic = "force-dynamic";
@@ -16,7 +16,8 @@ export default async function PaymentPage({ searchParams }: Props) {
   const identity = verifyOrderToken(token);
   const order = identity ? await getOrder(identity.orderId) : null;
 
-  if (!identity || !order || order.checkoutRequestId !== identity.checkoutRequestId) {
+  if (!identity || !order || order.checkoutRequestId !== identity.checkoutRequestId ||
+      !canDisplayPaymentCurrency(order.currency)) {
     return (
       <section className="px-6 py-16 md:px-12">
         <h1 className="text-[38px] font-extrabold">This payment link is invalid.</h1>

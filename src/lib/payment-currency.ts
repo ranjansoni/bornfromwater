@@ -13,3 +13,10 @@ export function formatPaymentAmount(cents: number, currency: PaymentCurrency): s
     style: "currency", currency, currencyDisplay: "code",
   }).format(cents / 100);
 }
+
+export function canDisplayPaymentCurrency(
+  currency: PaymentCurrency,
+  environment = process.env.VERCEL_ENV,
+): boolean {
+  return currency === "CAD" || environment === "preview";
+}

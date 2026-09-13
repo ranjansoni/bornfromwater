@@ -42,6 +42,9 @@ function config(): PoyntConfig {
   if (environment !== "production" && environment !== "ote") {
     throw new Error("POYNT_ENVIRONMENT must be production or ote.");
   }
+  if (process.env.VERCEL_ENV === "production" && environment !== "production") {
+    throw new Error("Production checkout requires the Poynt production environment.");
+  }
 
   return {
     applicationId,

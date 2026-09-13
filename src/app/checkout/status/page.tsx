@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ClearPaidCart } from "@/components/ClearPaidCart";
 import { getOrder } from "@/lib/order-store";
 import { verifyOrderToken } from "@/lib/orders";
-import { formatPaymentAmount } from "@/lib/payment-currency";
+import { canDisplayPaymentCurrency, formatPaymentAmount } from "@/lib/payment-currency";
 
 export const metadata: Metadata = { title: "Order status" };
 export const dynamic = "force-dynamic";
@@ -15,7 +15,8 @@ export default async function OrderStatusPage({ searchParams }: Props) {
   const identity = verifyOrderToken(token);
   const order = identity ? await getOrder(identity.orderId) : null;
 
-  if (!identity || !order || order.checkoutRequestId !== identity.checkoutRequestId) {
+  if (!identity || !order || order.checkoutRequestId !== identity.checkoutRequestId ||
+      !canDisplayPaymentCurrency(order.currency)) {
     return (
       <section className="px-6 py-16 md:px-12">
         <h1 className="text-[38px] font-extrabold">We could not identify this order.</h1>
