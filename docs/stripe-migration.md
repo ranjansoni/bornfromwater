@@ -62,6 +62,27 @@ credentials or send them through chat. See [restricted API keys](https://docs.st
 No client Stripe SDK or public API key is required. The browser sends only a cart
 and retry UUID; the server owns prices, credentials, Session creation and validation.
 
+## Configured Vercel preview
+
+The existing GitHub integration deploys `codex/stripe-migration` to
+[`born-from-water-test-schema` Preview](https://born-from-water-test-schem-git-2a150f-aseemasoni-7180s-projects.vercel.app/).
+Use this stable branch URL for review and testing; older immutable deployment
+URLs retain their earlier environment configuration.
+
+Stripe runtime variables and `DATABASE_URL` are scoped to this branch. The
+database is Neon `stripe-preview`, copied from production and migrated separately.
+The existing Preview `ORDER_SIGNING_SECRET` remains in use. The registered sandbox
+webhook sends the four checkout events to this branch's `/api/webhooks/stripe`.
+Vercel deployment protection remains enabled; Stripe's endpoint configuration
+includes the separately approved automation bypass. Treat that endpoint's query
+value as a secret and never paste the full URL into tickets, chat or source code.
+
+For a successful browser test, add an item, continue to Stripe, and use test
+card `4242 4242 4242 4242`, any future expiry and a three-digit CVC. Use synthetic
+Canadian address/contact information. The checkout must say **Sandbox**; the
+confirmation page must identify the order as a sandbox test. Test defaults are
+Canada, free shipping and no automatic tax. These are not the final live policy.
+
 ## Existing database migration and cutover
 
 Back up the database first and inventory orders by provider and payment status.
@@ -86,8 +107,9 @@ returns 410. Poynt OAuth routes and the browser card form have been removed.
 
 Retain the migrated schema even if an application rollback is required. Do not
 restore the old charge path while unreconciled Stripe orders exist. Historical
-code remains in the original ZIP and handoff diff; this extracted directory has
-no Git history. The unrelated sitemap and try-on assets are preserved.
+code remains in Git history, the original ZIP and handoff diff. Git history was
+restored without replacing the transferred files. The unrelated sitemap and
+try-on assets are preserved.
 
 ## Payment lifecycle and recovery
 

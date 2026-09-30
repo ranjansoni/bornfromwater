@@ -1,5 +1,41 @@
 # Stripe migration verification — 2026-09-29
 
+## Hosted preview setup — 2026-09-30
+
+The GitHub branch `codex/stripe-migration` deployed through the existing Vercel
+integration. Commit `8e4df78` was redeployed after configuring sandbox runtime
+settings. Preview deployment: `dpl_5WRuJ1aJvazucv9NNhDNhBzPN9m2`.
+The stable review URL is
+[the Stripe preview](https://born-from-water-test-schem-git-2a150f-aseemasoni-7180s-projects.vercel.app/).
+
+- Created Neon branch `stripe-preview` (`br-mute-frost-axxyl0ob`) from `production`
+  in project `sparkling-frost-11144338`, database `bornfromwater`. Applied
+  `001-stripe-checkout.sql` only to this copy. The six historical rows retained
+  all original field values: their ordered JSON checksum before and after was
+  `3817156a2dee396c87bc6fdfba86f279` (excluding newly added columns afterward).
+- Added branch-specific Vercel secrets for the isolated database, restricted
+  Stripe sandbox key, webhook signing secret, account, stable `APP_URL`, and
+  explicit CA/free-shipping/no-tax/live-disabled settings. The existing Preview
+  order signing secret is inherited. Production variables and database are unchanged.
+- Created restricted key **Born From Water — Vercel Stripe Preview**, with
+  Accounts Read and Checkout Sessions, Products, Prices, Shipping Rates Write.
+- Registered **Born From Water — Stripe Preview** webhook
+  `we_1ULVgtE3bgUZeCZrI6f4Exji`, own-account snapshot events, API
+  `2026-08-26.dahlia`, for all four checkout event types. An approved Vercel
+  automation bypass allows webhook delivery through deployment protection;
+  its value and all other secrets remain outside this repository.
+- The redeployment built successfully in Vercel. The application now opens
+  Stripe-hosted checkout; the missing-configuration 503 is resolved.
+- Cancelling and resuming reused the exact same Checkout Session. Stripe's
+  insufficient-funds test card was declined with an actionable message.
+
+Current app-created test Session:
+`cs_test_a1aHOeoUtJQqMdwUTzSzmcgVdxGR38aMX7lSQ7UQb0e4HT2LRns71BpVvp`.
+Order: `ebb8b2c0-c6d1-4f71-8532-4baee7320717`. The last API check showed
+`open`, `unpaid`, `livemode=false`, total 6500 CAD cents. Successful payment,
+webhook delivery and the deployed confirmation page are awaiting the prepared
+test payment; browser automatic approval review blocked the agent's retry.
+
 ## Preview preparation — 2026-09-30
 
 Git history was restored from `ranjansoni/bornfromwater` at the handoff's base
@@ -125,9 +161,10 @@ for invalid tokens. All 50 automated tests, lint, TypeScript and the Webpack
 production build pass after the connected-test fixes. Clean `npm ci` passes and
 reports zero vulnerabilities.
 
-## Still required before app-runtime sandbox sign-off
+## Earlier connection limitations — 2026-09-29
 
-The planner connection and hosted sandbox payment are now verified. No `.env.local`,
+The following limitations describe the earlier local verification, before the
+hosted setup recorded above. At that time, no `.env.local`,
 application restricted API key, webhook signing secret, order signing secret or
 Neon sandbox database connection have been supplied. Consequently **the running
 application's complete cart -> Stripe -> webhook -> status path remains unverified**.
