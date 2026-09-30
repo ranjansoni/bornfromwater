@@ -41,7 +41,7 @@ const policies = [
   },
   {
     h: "Payment",
-    p: "Handled securely by GoDaddy Payments. Card details are never collected or stored by this website.",
+    p: "Handled securely by Stripe. Card details are never collected or stored by this website.",
   },
   {
     h: "Returns & cancellations",

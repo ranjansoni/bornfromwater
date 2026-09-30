@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import { StoreAnalytics } from "@/components/StoreAnalytics";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/components/CartProvider";
@@ -43,7 +43,7 @@ export default function RootLayout({
           <Footer />
         </CartProvider>
       </body>
-      <GoogleAnalytics gaId="G-6WYHQZM2XF" />
+      <StoreAnalytics />
     </html>
   );
 }

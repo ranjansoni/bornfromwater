@@ -7,23 +7,28 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/*.test.mjs"
+    "test": "node --import tsx --conditions=react-server --test tests/*.test.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
-    "@next/third-parties": "16.3.1",
-    "next": "16.3.1",
+    "@next/third-parties": "16.3.7",
+    "next": "16.3.7",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "stripe": "^22.6.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.1",
+    "eslint-config-next": "16.3.7",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
-  }
+  },
+  "type": "module"
 }

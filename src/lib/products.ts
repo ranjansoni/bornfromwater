@@ -33,7 +33,7 @@ export type Product = {
   price: string;
   /** Authoritative server-side unit price in Canadian cents. */
   priceCents: number;
-  /** Stable internal SKU used to reconcile this catalogue with GoDaddy. */
+  /** Stable internal SKU used to reconcile catalogue items with orders. */
   sku: string;
   blurb: string;
   description: string;

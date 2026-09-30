@@ -2,43 +2,45 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { cartKey, CHECKOUT_ATTEMPT_KEY, forgetAttempt, readAttempt } from "@/lib/checkout-attempt";
 import { useCart } from "@/components/CartProvider";
 import { cardImage, formatCad } from "@/lib/products";
 
 export function CartView({ checkout = false }: { checkout?: boolean }) {
-  const router = useRouter();
   const { items, lines, totalCents, ready, setQuantity, removeItem } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [endedAttempt, setEndedAttempt] = useState<string | null>(null);
+  const [previousCart, setPreviousCart] = useState(false);
 
-  async function beginPayment() {
+  async function beginPayment(resumePrevious = false) {
     setSubmitting(true);
     setError("");
 
     try {
-      const cartKey = JSON.stringify(items);
-      const stored = JSON.parse(sessionStorage.getItem("bfw-checkout-attempt") ?? "null") as
-        | { cartKey: string; checkoutId: string }
-        | null;
-      const checkoutId =
-        stored?.cartKey === cartKey ? stored.checkoutId : crypto.randomUUID();
+      const stored = readAttempt(sessionStorage);
+      if (stored && stored.cartKey !== cartKey(items) && !resumePrevious) {
+        setPreviousCart(true);
+        throw new Error("You have a previous checkout for a different selection. Review it before starting another payment.");
+      }
+      const checkoutId = stored?.checkoutId ?? crypto.randomUUID();
       sessionStorage.setItem(
-        "bfw-checkout-attempt",
-        JSON.stringify({ cartKey, checkoutId }),
+        CHECKOUT_ATTEMPT_KEY,
+        JSON.stringify({ cartKey: stored?.cartKey ?? cartKey(items), checkoutId }),
       );
 
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, checkoutId }),
+        body: JSON.stringify({ items: stored ? JSON.parse(stored.cartKey) : items, checkoutId }),
       });
-      const result = (await response.json()) as { paymentPath?: string; error?: string };
+      const result = (await response.json()) as { paymentPath?: string; error?: string; code?: string; checkoutId?: string };
+      if (result.code === "CHECKOUT_ENDED" && result.checkoutId === checkoutId) setEndedAttempt(checkoutId);
       if (!response.ok || !result.paymentPath) {
         throw new Error(result.error ?? "Checkout could not be started.");
       }
-      router.push(result.paymentPath);
+      window.location.assign(result.paymentPath);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Checkout could not be started.");
       setSubmitting(false);
@@ -127,21 +129,37 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
 
         <aside className="h-fit border-2 border-divider p-6">
           <div className="flex justify-between gap-4 text-[18px] font-extrabold">
-            <span>Total</span>
+            <span>Subtotal</span>
             <span>{formatCad(totalCents)} CAD</span>
           </div>
           <p className="mt-3 text-[13px] leading-[1.55] text-mid">
-            The server rechecks every item and price before showing the secure card form.
+            Pay securely with Stripe. Shipping and any applicable tax are shown before you pay. All prices are in CAD.
           </p>
           {error && (
             <p role="alert" className="mt-5 border-2 border-accent bg-accent-100 p-3 text-[13px]">
               {error}
             </p>
           )}
+          {previousCart && !endedAttempt && (
+            <button type="button" disabled={submitting} onClick={() => beginPayment(true)} className="mt-4 text-accent-700 underline">
+              Review previous checkout
+            </button>
+          )}
+          {endedAttempt && (
+            <button type="button" onClick={() => {
+              forgetAttempt(sessionStorage, endedAttempt);
+              setEndedAttempt(null);
+              setPreviousCart(false);
+              setError("");
+              void beginPayment();
+            }} className="mt-4 text-accent-700 underline">
+              Start a new checkout
+            </button>
+          )}
           {checkout ? (
             <button
               type="button"
-              onClick={beginPayment}
+              onClick={() => beginPayment()}
               disabled={submitting}
               className="mt-6 w-full bg-accent px-5 py-[14px] text-left text-[13px] font-extrabold tracking-[0.1em] text-sand uppercase hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
             >

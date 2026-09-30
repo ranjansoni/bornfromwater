@@ -1,3 +1,5 @@
+> Historical reference only. The Poynt authorization routes and card form have been retired. Use [Stripe setup](stripe-migration.md) for current checkout.
+
 # Poynt merchant callback
 
 Register this exact OAuth Callback URL in the existing Cloud App:

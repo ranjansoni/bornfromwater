@@ -208,7 +208,7 @@ export default async function ProductPage({ params }: Params) {
               <>
                 <AddToCartButton slug={product.slug} />
                 <p className="mt-3 text-[13px] text-mid">
-                  Secure payment is processed by GoDaddy Payments.
+                  Secure payment is processed by Stripe.
                 </p>
               </>
             )}

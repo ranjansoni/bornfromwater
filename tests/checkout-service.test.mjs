@@ -1,91 +1,37 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import {
-  DuplicatePaymentError,
-  InvalidOrderAmountError,
-  processOrderPayment,
-} from "../src/lib/checkout-service.ts";
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { canCreateSession, verifiedPayment, verifyCheckoutSession, InvalidCheckoutSessionError } from '../src/lib/checkout-service.ts';
+import { order, session } from './fixtures.mjs';
 
-function pendingOrder(overrides = {}) {
-  return {
-    orderId: "11111111-1111-4111-8111-111111111111",
-    totalCents: 6500,
-    currency: "CAD",
-    paymentStatus: "pending",
-    godaddyTransactionId: null,
-    ...overrides,
-  };
+test('verifies paid totals, delivery details and sizing note', () => {
+  assert.deepEqual(verifiedPayment(order(), session()), { paymentIntentId: 'pi_one', paidTotalCents: 7000, shippingCents: 500, taxCents: 0, customerEmail: 'buyer@example.com', shippingDetails: session().collected_information.shipping_details, orderNote: '6 inches' });
+});
+for (const patch of [{ status: 'open' }, { status: 'expired' }, { payment_status: 'unpaid' }, { payment_status: 'no_payment_required' }]) {
+  test(`does not approve ${JSON.stringify(patch)}`, () => assert.equal(verifiedPayment(order(), session(patch)), null));
 }
+for (const patch of [
+  { id: 'cs_another' }, { livemode: true }, { mode: 'subscription' }, { client_reference_id: 'other' },
+  { metadata: {} }, { metadata: { ...session().metadata, checkout_request_id: 'other' } },
+  { currency: 'usd' }, { amount_subtotal: 6400 }, { amount_total: 6999 }, { payment_intent: null },
+  { total_details: { amount_shipping: 501, amount_tax: 0, amount_discount: 0 } },
+  { total_details: { amount_shipping: 500, amount_tax: 0, amount_discount: 1 } },
+  { total_details: { amount_shipping: 500, amount_tax: -1, amount_discount: 0 } },
+  { total_details: { amount_shipping: 500, amount_tax: 100, amount_discount: 0 }, amount_total: 7100 },
+]) test(`rejects mismatched payment ${JSON.stringify(patch)}`, () => assert.throws(() => verifiedPayment(order(), session(patch)), InvalidCheckoutSessionError));
 
-function store({ canClaim = true } = {}) {
-  const calls = [];
-  return {
-    calls,
-    async claim(orderId) {
-      calls.push(["claim", orderId]);
-      return canClaim;
-    },
-    async approve(orderId, transactionId) {
-      calls.push(["approve", orderId, transactionId]);
-    },
-    async decline(orderId) {
-      calls.push(["decline", orderId]);
-    },
-  };
-}
-
-test("records an approved checkout", async () => {
-  const paymentStore = store();
-  const result = await processOrderPayment(pendingOrder(), 6500, paymentStore, async () => ({
-    outcome: "approved",
-    transactionId: "poynt-transaction-1",
-    totalCents: 6500,
-    currency: "CAD",
-  }));
-
-  assert.equal(result.outcome, "approved");
-  assert.deepEqual(paymentStore.calls.map(([name]) => name), ["claim", "approve"]);
+test('rejects legacy provider and mode mismatch', () => {
+  assert.throws(() => verifyCheckoutSession(order({ paymentProvider: 'godaddy' }), session()), InvalidCheckoutSessionError);
+  assert.throws(() => verifyCheckoutSession(order({ stripeLivemode: null }), session()), InvalidCheckoutSessionError);
 });
-
-test("records a declined checkout without approving it", async () => {
-  const paymentStore = store();
-  const result = await processOrderPayment(
-    pendingOrder(),
-    6500,
-    paymentStore,
-    async () => ({ outcome: "declined" }),
-  );
-
-  assert.deepEqual(result, { outcome: "declined" });
-  assert.deepEqual(paymentStore.calls.map(([name]) => name), ["claim", "decline"]);
+test('automatic tax requires complete calculation and correct total', () => {
+  const withTax = order(); withTax.stripeCheckoutParams.automatic_tax.enabled = true;
+  const taxed = session({ amount_total: 7910, total_details: { amount_shipping: 500, amount_tax: 910, amount_discount: 0 }, automatic_tax: { status: 'complete' } });
+  assert.equal(verifiedPayment(withTax, taxed).taxCents, 910);
+  assert.throws(() => verifiedPayment(withTax, { ...taxed, automatic_tax: { status: 'requires_location_inputs' } }));
 });
-
-test("rejects an order whose stored amount differs from the catalogue", async () => {
-  const paymentStore = store();
-  let chargeCalled = false;
-
-  await assert.rejects(
-    processOrderPayment(pendingOrder(), 6000, paymentStore, async () => {
-      chargeCalled = true;
-      return { outcome: "declined" };
-    }),
-    InvalidOrderAmountError,
-  );
-  assert.equal(chargeCalled, false);
-  assert.equal(paymentStore.calls.length, 0);
-});
-
-test("prevents a second charge when the atomic order claim fails", async () => {
-  const paymentStore = store({ canClaim: false });
-  let chargeCalled = false;
-
-  await assert.rejects(
-    processOrderPayment(pendingOrder(), 6500, paymentStore, async () => {
-      chargeCalled = true;
-      return { outcome: "declined" };
-    }),
-    DuplicatePaymentError,
-  );
-  assert.equal(chargeCalled, false);
-  assert.deepEqual(paymentStore.calls.map(([name]) => name), ["claim"]);
+test('idempotency safety window rejects old, invalid, and future attempts', () => {
+  const now = Date.now();
+  assert.equal(canCreateSession(new Date(now - 22 * 3600000).toISOString(), now), true);
+  for (const time of [now - 23 * 3600000, now - 25 * 3600000, now + 1000]) assert.equal(canCreateSession(new Date(time).toISOString(), now), false);
+  assert.equal(canCreateSession('invalid', now), false);
 });

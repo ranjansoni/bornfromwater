@@ -1,12 +1,7 @@
+// USD is retained only for reading historical GoDaddy test orders.
 export type PaymentCurrency = "CAD" | "USD";
 
-// Temporary Test Lab experiment. Production always uses CAD, even if the flag is set.
-export function paymentCurrency(
-  environment = process.env.VERCEL_ENV,
-  usdTest = process.env.POYNT_PREVIEW_USD_TEST,
-): PaymentCurrency {
-  return environment === "preview" && usdTest === "true" ? "USD" : "CAD";
-}
+export function paymentCurrency(): PaymentCurrency { return "CAD"; }
 
 export function formatPaymentAmount(cents: number, currency: PaymentCurrency): string {
   return new Intl.NumberFormat("en-CA", {
@@ -14,9 +9,6 @@ export function formatPaymentAmount(cents: number, currency: PaymentCurrency): s
   }).format(cents / 100);
 }
 
-export function canDisplayPaymentCurrency(
-  currency: PaymentCurrency,
-  environment = process.env.VERCEL_ENV,
-): boolean {
-  return currency === "CAD" || environment === "preview";
+export function canDisplayPaymentCurrency(currency: PaymentCurrency): boolean {
+  return currency === "CAD" || currency === "USD";
 }

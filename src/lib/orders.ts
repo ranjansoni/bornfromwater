@@ -71,7 +71,7 @@ export function validateCart(items: unknown): {
   return { lines, totalCents, fingerprint };
 }
 
-function signingSecret(): string {
+export function signingSecret(): string {
   const secret = process.env.ORDER_SIGNING_SECRET;
   if (!secret || secret.length < 32) {
     throw new Error("ORDER_SIGNING_SECRET must contain at least 32 characters.");
@@ -88,6 +88,7 @@ export function signOrderToken(order: OrderToken): string {
 }
 
 export function verifyOrderToken(token: string): OrderToken | null {
+  if (!token || token.length > 2048) return null;
   const [payload, suppliedSignature, extra] = token.split(".");
   if (!payload || !suppliedSignature || extra) return null;
 
@@ -107,7 +108,8 @@ export function verifyOrderToken(token: string): OrderToken | null {
     if (
       value?.version !== 1 ||
       typeof value.orderId !== "string" ||
-      typeof value.checkoutRequestId !== "string"
+      typeof value.checkoutRequestId !== "string" ||
+      !isUuid(value.orderId) || !isUuid(value.checkoutRequestId)
     ) {
       return null;
     }
@@ -115,4 +117,8 @@ export function verifyOrderToken(token: string): OrderToken | null {
   } catch {
     return null;
   }
+}
+
+export function isUuid(value: unknown): value is string {
+  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }

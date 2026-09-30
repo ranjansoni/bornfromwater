@@ -6,29 +6,40 @@ handcrafted 14k gold-filled gemstone bracelets.
 Built from the design handoff in `../design_handoff_born_from_water` — see its
 `README.md` for the binding spec (tokens, screen layouts, copy).
 
-The site owns its catalogue and local browser cart. Checkout validates the cart
-against server-only numeric prices, records a minimal pending order in Neon, and
-mounts the GoDaddy Poynt Collect card iframe. The browser receives a one-time
-nonce; the server charges that nonce and records GoDaddy's result. Card data never
-reaches this application, and visiting the confirmation URL cannot mark an order
-paid.
+The site owns its catalogue and browser cart. Checkout validates new carts against
+server catalogue prices, saves an order in Postgres, and redirects to Stripe-hosted
+Checkout for a one-time CAD payment. Signed webhooks and server-retrieved Sessions
+confirm payment. A confirmation URL alone cannot mark an order paid. Historical
+GoDaddy orders remain readable; the old charge endpoint returns HTTP 410.
 
-## Stack
+## Development and sandbox setup
 
-Next.js 16 (App Router) · TypeScript · Tailwind 4 · Neon serverless Postgres.
-Catalogue pages are prerendered; checkout and payment status use Node.js server
-routes.
+Next.js 16.3.7 (App Router), React 19, TypeScript, Tailwind 4, Neon Postgres,
+and Stripe SDK 22.6.2. Node 22 is used for the test suite.
 
 ```bash
-npm run dev     # http://localhost:3000
-npm run build
-npm run lint
+npm ci
 npm test
+npm run lint
+npm run build
+npm run dev
 ```
 
-Run `src/db/schema.sql` once in the Neon SQL Editor before using checkout. The
-database contains one `orders` table only. Copy `.env.example` to `.env.local`
-for local development; `.env.publish.local` is not loaded by Next.js.
+Copy `.env.example` to `.env.local` and supply credentials securely. Next.js does
+not load `.env.publish.local`. Use **Born From Water sandbox** and a separate
+sandbox database. For a fresh database run `src/db/schema.sql`. For an existing
+orders table, back it up and run the additive `src/db/migrations/001-stripe-checkout.sql`;
+never drop/recreate orders. Keep the original `ORDER_SIGNING_SECRET` for historical
+links. No production database migration or deployment has been performed here.
+
+The test suite uses embedded PostgreSQL with synthetic orders and signed Stripe
+fixtures; it does not need runtime credentials or contact Stripe. A real sandbox
+payment and webhook delivery still require the connected account and `.env.local`.
+See [Stripe setup, migration, testing and fulfillment](docs/stripe-migration.md).
+
+If Turbopack's worker port is restricted by the host environment, the supported
+fallback is `npm run build -- --webpack` (and `npm run dev -- --webpack`). The
+existing Google font loader requires network access on the first build.
 
 ## Design rules (from the Modernist system — these are binding)
 
