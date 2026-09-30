@@ -18,7 +18,7 @@ const store = createOrderStore({ query: async (sql, params) => (await db.query(s
 const product = products.find(p => !p.placeholder);
 const items = [{ slug: product.slug, quantity: 1 }];
 const cart = validateCart(items);
-beforeEach(() => db.exec('TRUNCATE orders'));
+beforeEach(() => db.exec('TRUNCATE orders CASCADE'));
 after(() => db.close());
 
 function harness() {

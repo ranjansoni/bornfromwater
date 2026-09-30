@@ -170,12 +170,18 @@ be shipped. The order stores `validated_cart`, `paid_total_cents`, `shipping_cen
 `tax_cents`, `customer_email`, `shipping_details`, `order_note`, and the payment
 intent ID. Use these saved records for packing and customer contact.
 
-Fulfillment is manual: webhook replays do not send email or trigger shipping.
-Record shipments once in the business's fulfillment system, keyed by order ID.
-No automatic refund, inventory reservation, receipt email or shipping-label service
-is implemented. Configure Stripe's payment receipts separately if desired. Handle
-refunds and disputes in Stripe and reconcile the fulfillment record; this app does
-not currently ingest refund/dispute events.
+Use the private `/admin` [owner portal](order-management.md) to view confirmed paid
+orders, mark them packed/shipped/delivered, and record tracking and delivery details.
+Apply migration `002-order-management.sql` and configure its two private access
+variables before use. Operational changes are stored separately from original
+orders; historical GoDaddy rows remain read-only.
+
+The owner chose Stripe's built-in paid-order email notifications for
+`bornfromwatercanada@gmail.com`; the sandbox preference is enabled. Webhook replays
+do not send app-generated emails or trigger shipping. No automatic refund,
+inventory reservation, customer shipping email, or shipping-label service is
+implemented. Handle refunds/disputes in Stripe and reconcile the fulfillment
+record; this app does not currently ingest refund/dispute events.
 
 ## Verification and launch gate
 

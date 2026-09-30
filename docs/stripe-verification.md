@@ -1,5 +1,20 @@
 # Stripe migration verification — 2026-09-29
 
+## Owner portal — 2026-09-30
+
+- 65 automated tests pass, including authentication, CSRF, throttling, pinned
+  account/mode, fulfillment updates, concurrency and historical-order preservation.
+- ESLint and TypeScript pass. Production webpack build passes; it required network
+  access to download the existing Archivo Google font.
+- Unauthenticated `/admin/orders` browser visit redirects to `/admin/login`.
+- Migration 002 was applied only to Neon `stripe-preview`. All nine original
+  orders matched checksum `c0aa3f2be91c4536c298d385a40e5fa4` before and after.
+- Stripe sandbox **Successful payment receipt – Email** preference was enabled
+  and verified checked for the owner account, whose email is
+  `bornfromwatercanada@gmail.com`. Inbox delivery has not been verified.
+- Deployment credentials and authenticated preview browser verification are
+  pending at this point; see subsequent verification entries for completion.
+
 ## Hosted preview setup — 2026-09-30
 
 The GitHub branch `codex/stripe-migration` deployed through the existing Vercel

@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         { key: "Content-Security-Policy", value: contentSecurityPolicy(false) },
         { key: "Referrer-Policy", value: "no-referrer" },
       ] },
+      ...["/admin/:path*", "/api/admin/:path*"].map(source => ({ source, headers: [
+        { key: "Content-Security-Policy", value: contentSecurityPolicy(false) },
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "Cache-Control", value: "private, no-store" },
+        { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+      ] })),
     ];
   },
 };

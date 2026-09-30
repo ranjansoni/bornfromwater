@@ -3,6 +3,10 @@
 Catalogue and lightweight storefront for Born From Water, a Vancouver maker of
 handcrafted 14k gold-filled gemstone bracelets.
 
+The private owner portal at `/admin` tracks packing, shipping, delivery and customer
+details. See [owner portal setup](docs/order-management.md) for authentication,
+the additive database migration and Stripe paid-order email notifications.
+
 Built from the design handoff in `../design_handoff_born_from_water` — see its
 `README.md` for the binding spec (tokens, screen layouts, copy).
 

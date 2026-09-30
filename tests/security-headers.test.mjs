@@ -14,3 +14,15 @@ test('checkout headers block third-party analytics and signed-token referrers', 
   assert.doesNotMatch(csp, /default-src \*/);
   assert.doesNotMatch(csp, /unsafe-eval/);
 });
+
+test('owner pages and APIs disallow indexing, caching, analytics and referrer leakage', async () => {
+  const routes = await config.headers();
+  for (const source of ['/admin/:path*', '/api/admin/:path*']) {
+    const route = routes.find(route => route.source === source);
+    const headers = Object.fromEntries(route.headers.map(header => [header.key, header.value]));
+    assert.equal(headers['Cache-Control'], 'private, no-store');
+    assert.equal(headers['X-Robots-Tag'], 'noindex, nofollow, noarchive');
+    assert.equal(headers['Referrer-Policy'], 'no-referrer');
+    assert.doesNotMatch(headers['Content-Security-Policy'], /google-analytics|googletagmanager/);
+  }
+});

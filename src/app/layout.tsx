@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
 import { StoreAnalytics } from "@/components/StoreAnalytics";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { CartProvider } from "@/components/CartProvider";
+import { StoreShell } from "@/components/StoreShell";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -37,11 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en-CA" className={archivo.variable}>
       <body>
-        <CartProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </CartProvider>
+        <StoreShell>{children}</StoreShell>
       </body>
       <StoreAnalytics />
     </html>
