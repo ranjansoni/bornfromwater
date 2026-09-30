@@ -47,9 +47,10 @@ reconciliation and confirmed association; do not backfill from guesswork.
    `https://<preview-host>/api/webhooks/stripe`, using the account's own events.
    Use the SDK's API version, currently `2026-08-26.dahlia`.
 5. Configure shipping countries (comma-separated country codes), shipping in CAD
-   cents, and `STRIPE_AUTOMATIC_TAX=true|false`. Sandbox defaults are Canada,
-   zero shipping and no automatic tax. These are test assumptions, not approved
-   business policy. Automatic tax requires corresponding Stripe Tax configuration.
+   cents, and `STRIPE_AUTOMATIC_TAX=true|false`. The owner confirmed Canada-only
+   shipping at CA$10 per order on 2026-09-30: set `STRIPE_SHIPPING_COUNTRIES=CA`
+   and `STRIPE_SHIPPING_CENTS=1000`. Tax remains disabled while registrations
+   are unconfirmed. Automatic tax requires corresponding Stripe Tax configuration.
 
 Use a separate restricted key for this application and environment. Grant only
 permissions needed for creating/retrieving Checkout Sessions (including inline
@@ -80,8 +81,19 @@ value as a secret and never paste the full URL into tickets, chat or source code
 For a successful browser test, add an item, continue to Stripe, and use test
 card `4242 4242 4242 4242`, any future expiry and a three-digit CVC. Use synthetic
 Canadian address/contact information. The checkout must say **Sandbox**; the
-confirmation page must identify the order as a sandbox test. Test defaults are
-Canada, free shipping and no automatic tax. These are not the final live policy.
+confirmation page must identify the order as a sandbox test. New checkouts use
+Canada-only shipping at CA$10 per order. The earlier CA$65 test used free shipping;
+existing Checkout Sessions retain their original amounts and are not repriced.
+
+Tax was intentionally disabled during initial sandbox setup. A 2026-09-30 account
+check found Tax Settings `pending` (missing head office), no preset product tax
+code and no tax registrations. The owner is not registered or is unsure of the
+business's registration status. Keep `STRIPE_AUTOMATIC_TAX=false` until this is
+resolved. Confirm the shipping-origin address, appropriate jewellery tax code,
+and applicable GST/HST/provincial registrations; configure them in the sandbox,
+then enable automatic tax and verify a calculation. Merely enabling the flag
+without active registrations can still produce zero tax. Record confirmed live
+registrations separately before launch; sandbox registrations do not carry over.
 
 ## Existing database migration and cutover
 

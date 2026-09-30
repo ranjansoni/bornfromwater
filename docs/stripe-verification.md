@@ -29,12 +29,31 @@ The stable review URL is
 - Cancelling and resuming reused the exact same Checkout Session. Stripe's
   insufficient-funds test card was declined with an actionable message.
 
-Current app-created test Session:
+The first app-created test Session:
 `cs_test_a1aHOeoUtJQqMdwUTzSzmcgVdxGR38aMX7lSQ7UQb0e4HT2LRns71BpVvp`.
-Order: `ebb8b2c0-c6d1-4f71-8532-4baee7320717`. The last API check showed
-`open`, `unpaid`, `livemode=false`, total 6500 CAD cents. Successful payment,
-webhook delivery and the deployed confirmation page are awaiting the prepared
-test payment; browser automatic approval review blocked the agent's retry.
+Order: `ebb8b2c0-c6d1-4f71-8532-4baee7320717`. This remains `open`, `unpaid`,
+`livemode=false`, total 6500 CAD cents; browser approval review blocked a retry.
+
+The owner completed a separate fresh checkout through the deployed app:
+`cs_test_a1FJyxLg5tl0MX6R5G9qoPyJGgp8JiLVFqcTLxhKvXzXqCKGYdtilG8jhd`.
+Stripe confirmed `complete`, `paid`, `livemode=false`, total 6500 CAD cents.
+Neon stored order `5bd35ba8-1aa4-4f33-b518-2302dd49e1f9` as `approved`, with
+`paid_total_cents=6500`. Event `evt_1ULW0OE3bgUZeCZrjr1QO8wx` delivered to the
+deployed webhook with HTTP 200 and `{"received":true}` at 22:29:41 UTC. A manual
+replay at 22:34:04 UTC also returned HTTP 200; the order remained approved.
+
+After that payment, the owner requested Canada-only shipping at CA$10 per order.
+The branch-specific `STRIPE_SHIPPING_CENTS` was changed to `1000`; countries remain
+`CA`. This applies only to newly created checkouts. The existing paid order and
+open Sessions retain their original shipping and totals.
+
+Tax diagnosis: checkout automatic tax was disabled. The sandbox's Tax Settings
+are `pending`, missing `head_office`, with no preset product tax code and no tax
+registrations. The owner answered that registrations are unknown/unconfirmed.
+Tax remains disabled until origin, product classification and registrations are
+confirmed. Taxed payments and a payment completed without returning to the app
+have not yet been verified in the hosted environment; local tests cover those
+payment/status cases with simulated Stripe responses.
 
 ## Preview preparation — 2026-09-30
 
