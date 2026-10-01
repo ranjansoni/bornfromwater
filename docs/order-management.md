@@ -56,6 +56,27 @@ customer email, change a payment, issue a refund, or reserve stock. Use the paym
 link on the order to check Stripe for refunds or disputes before shipping. Refund
 and dispute updates are not yet synchronized into the local payment record.
 
+## Soft deletion and restoring orders
+
+On a confirmed Stripe order, choose **Delete order → Confirm delete**. The order
+is hidden from the default lists and counts, and fulfillment editing is disabled.
+This only changes portal visibility: it does not cancel fulfillment, refund a
+payment, delete Stripe data, erase customer details, or remove order history.
+Use the separate cancellation workflow when a customer cancels a purchase.
+
+Check **Show deleted orders** on the orders page to include hidden orders alongside
+the others. Deleted rows are labelled. Status, search and pagination still apply;
+the checkbox is preserved when changing these filters. Open the order and choose
+**Restore order** to recover its previous fulfillment status, notes, tracking and
+delivery details. Deleting and restoring both leave dated activity entries.
+Historical GoDaddy orders and unpaid checkouts remain read-only.
+
+Deletion uses the same version check as fulfillment edits, so an older tab cannot
+silently overwrite a newer deletion or restore. A deleted order remains available
+through its authenticated detail page; customer payment confirmation and webhook
+processing still read the preserved original order. No permanent-delete operation
+is exposed. Sandbox and live order lists remain isolated when launching.
+
 ## Paid-order email notifications
 
 The owner chose Stripe's built-in notifications, sent to the Stripe user email
@@ -85,6 +106,11 @@ Apply `src/db/migrations/004-cart-activity.sql` before deploying cart reporting.
 It adds `cart_activity`, `cart_checkout_links`, and `cart_activity_limits` without
 updating orders or fulfillment. It was applied only to `stripe-preview`; all 10
 orders retained checksum `0c9b72ff4e02baba98aaebccb6c97cd5` before and after.
+
+Apply `src/db/migrations/005-order-soft-delete.sql` before deploying soft deletion.
+It adds nullable `order_fulfillment.deleted_at` and the activity `action` field,
+defaulting previous entries to `updated`. It does not change the original orders,
+fulfillment values or activity contents. Existing orders are visible by default.
 
 The migration was applied only to Neon `stripe-preview`
 (`br-mute-frost-axxyl0ob`). Before and after, the complete nine-row `orders` table

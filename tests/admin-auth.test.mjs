@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { adminConfiguration, adminCookie, adminCookieName, hashAdminPassword, checkAdminPassword,
   createAdminSession, verifyAdminSession, validAdminOrigin, sessionLifetime } from '../src/lib/admin-auth.ts';
-import { handleAdminLogin, handleAdminLogout, handleOrderUpdate } from '../src/lib/admin-handlers.ts';
+import { handleAdminLogin, handleAdminLogout, handleOrderUpdate, handleOrderDeletion } from '../src/lib/admin-handlers.ts';
 import { orderId } from './fixtures.mjs';
 
 const password = 'local-tests-only-password-very-long';
@@ -65,5 +65,16 @@ test('order mutation denies unauthenticated and cross-site requests before touch
   const cookie = `${adminCookieName()}=${createAdminSession(config)}`;
   assert.equal((await handleOrderUpdate(request('/api/admin/orders/x', {}, { cookie, origin: 'https://evil.example' }), orderId, protectedDeps)).status, 403);
   assert.equal((await handleOrderUpdate(request('/api/admin/orders/x', {}, { cookie }), 'not-an-order-id', protectedDeps)).status, 404);
+  assert.equal(touched, false);
+});
+test('soft deletion and restoration require authentication and an allowed origin before database access', async () => {
+  let touched = false;
+  const protectedDeps = { ...deps, setOrderDeleted: async () => { touched = true; return 1; } };
+  const cookie = `${adminCookieName()}=${createAdminSession(config)}`;
+  for (const deleted of [true, false]) {
+    assert.equal((await handleOrderDeletion(request('/api/admin/orders/x/visibility', { deleted, version: 0 }), orderId, protectedDeps)).status, 401);
+    assert.equal((await handleOrderDeletion(request('/api/admin/orders/x/visibility', { deleted, version: 0 }, { cookie, origin: 'https://evil.example' }), orderId, protectedDeps)).status, 403);
+    assert.equal((await handleOrderDeletion(request('/api/admin/orders/x/visibility', { deleted, version: 0 }, { cookie }), 'not-an-order-id', protectedDeps)).status, 404);
+  }
   assert.equal(touched, false);
 });

@@ -6,6 +6,7 @@ import { stripeConfiguration } from '@/lib/stripe-config';
 import { money, orderDate, statusLabels } from '@/lib/order-management';
 import { isUuid } from '@/lib/orders';
 import { OrderEditor } from '@/components/admin/OrderEditor';
+import { OrderDeletion } from '@/components/admin/OrderDeletion';
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
@@ -18,11 +19,12 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const editable = order.provider === 'stripe' && order.paymentStatus === 'approved';
   const stripeUrl = order.paymentIntentId ? `https://dashboard.stripe.com/${scope.accountId}/${order.livemode ? '' : 'test/'}payments/${order.paymentIntentId}` : null;
   return <>
-    <Link className="admin-back" href={order.provider === 'godaddy' ? '/admin/orders?status=history' : '/admin/orders?status=all'}>← Back to orders</Link>
+    <Link className="admin-back" href={`${order.provider === 'godaddy' ? '/admin/orders?status=history' : '/admin/orders?status=all'}${order.deletedAt ? '&deleted=1' : ''}`}>← Back to orders</Link>
     <div className="admin-title-row"><div><p className="admin-eyebrow">ORDER DETAILS</p><h1>#{id.slice(0, 8).toUpperCase()}</h1>
       <p className="admin-muted">{orderDate(order.createdAt)}</p></div><span className={`admin-badge admin-status-${order.status}`}>{editable ? statusLabels[order.status] : order.paymentStatus}</span></div>
     {order.provider === 'stripe' && !order.livemode && <p className="admin-sandbox"><strong>Sandbox order</strong> · You can test this workflow without shipping anything.</p>}
     {order.provider === 'godaddy' && <p className="admin-sandbox"><strong>GoDaddy history</strong> · Original record, kept for reference.</p>}
+    {order.deletedAt && <p className="admin-cancellation" role="status"><strong>Order deleted from the portal view.</strong> Deleted {orderDate(order.deletedAt)}. Restore it before making fulfillment changes. Payment and order history are retained.</p>}
     {order.status === 'cancelled' && <p className="admin-cancellation"><strong>Order cancelled.</strong> Do not fulfill this order. Cancellation does not confirm a refund; check the payment in Stripe for its current refund status.</p>}
     <div className="admin-detail-grid"><aside>
       <section className="admin-panel"><h2>Order summary</h2><ul className="admin-items">{order.items.map((item, index) => <li key={`${item.sku}-${index}`}>
@@ -36,12 +38,14 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <section className="admin-panel"><h2>Bracelet size / order note</h2><p className="admin-preserve">{order.orderNote || 'No note added at checkout.'}</p></section>
       {order.carrier && <section className="admin-panel"><h2>Shipment</h2><p className="admin-preserve">{order.carrier}{order.trackingNumber ? `\n${order.trackingNumber}` : '\nUntracked shipment'}</p>
         {order.trackingUrl.startsWith('https://') && <a className="admin-link" href={order.trackingUrl} target="_blank" rel="noopener noreferrer">Track shipment ↗</a>}</section>}
-      <section className="admin-panel"><h2>Activity</h2><ol className="admin-activity">{events.map(event => <li key={event.id}><strong>{statusLabels[event.status]} · Order updated</strong>
+      <section className="admin-panel"><h2>Activity</h2><ol className="admin-activity">{events.map(event => <li key={event.id}><strong>{statusLabels[event.status]} · {event.action === 'deleted' ? 'Order soft-deleted' : event.action === 'restored' ? 'Order restored' : 'Order updated'}</strong>
         <small>{orderDate(event.createdAt)}</small>{event.carrier && <p>{event.carrier}{event.trackingNumber ? ` · ${event.trackingNumber}` : ''}</p>}
         {event.status === 'cancelled' && event.internalNote && <p className="admin-preserve">Reason / notes: {event.internalNote}</p>}</li>)}
         <li><strong>{order.paymentStatus === 'approved' ? 'Order received' : 'Checkout created'}</strong><small>{orderDate(order.createdAt)}</small></li></ol></section>
       <details className="admin-panel"><summary>Original checkout details</summary><p className="admin-preserve">{Object.values(order.originalCustomer).filter(Boolean).join('\n') || 'Not recorded for this historical order.'}</p>
         <small className="admin-muted">Full order ID: {id}</small></details>
-    </aside><section aria-label="Manage order">{editable ? <OrderEditor order={order} /> : <div className="admin-panel"><h2>Read-only order</h2><p>Only confirmed Stripe orders can be updated here.</p></div>}</section></div>
+    </aside><section aria-label="Manage order">{editable && !order.deletedAt ? <OrderEditor order={order} /> : <div className="admin-panel"><h2>Read-only order</h2><p>{order.deletedAt ? 'Restore this order to edit its fulfillment details.' : 'Only confirmed Stripe orders can be updated here.'}</p>
+      {order.deletedAt && <p className="admin-preserve">{Object.values(order.customer).filter(Boolean).join('\n')}</p>}</div>}
+      {editable && <OrderDeletion key={`${order.orderId}:${order.version}`} orderId={order.orderId} version={order.version} deleted={Boolean(order.deletedAt)} />}</section></div>
   </>;
 }

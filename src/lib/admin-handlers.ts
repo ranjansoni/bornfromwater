@@ -7,7 +7,8 @@ import { stripeConfiguration } from './stripe-config';
 import { isUuid } from './orders';
 
 const defaults = { config: adminConfiguration, scope: stripeConfiguration,
-  consumeLoginAttempt: adminOrders.consumeLoginAttempt, updateFulfillment: adminOrders.updateFulfillment };
+  consumeLoginAttempt: adminOrders.consumeLoginAttempt, updateFulfillment: adminOrders.updateFulfillment,
+  setOrderDeleted: adminOrders.setOrderDeleted };
 function json(body: unknown, status = 200, headers: Record<string, string> = {}) {
   return Response.json(body, { status, headers: { 'Cache-Control': 'private, no-store', ...headers } });
 }
@@ -49,5 +50,23 @@ export async function handleOrderUpdate(request: Request, orderId: string, deps 
     if (error instanceof OrderInputError) return json({ error: error.message }, 400);
     if (error instanceof OrderConflictError) return json({ error: error.message }, 409);
     return json({ error: 'The order could not be saved. Please try again.' }, 503);
+  }
+}
+export async function handleOrderDeletion(request: Request, orderId: string, deps = defaults) {
+  try {
+    const config = deps.config();
+    if (!verifyAdminSession(adminRequestToken(request), config)) return json({ error: 'Please sign in again.' }, 401);
+    if (!validAdminOrigin(request, config)) return json({ error: 'Invalid request.' }, 403);
+    if (!isUuid(orderId)) return json({ error: 'Order not found.' }, 404);
+    const body = await readBody(request);
+    if (typeof body?.deleted !== 'boolean' || !Number.isSafeInteger(body?.version) || body.version < 0 || body.version > 2147483646) {
+      throw new OrderInputError('Invalid order update.');
+    }
+    const version = await deps.setOrderDeleted(orderId, body.deleted, body.version, deps.scope());
+    return json({ ok: true, version });
+  } catch (error) {
+    if (error instanceof OrderInputError) return json({ error: error.message }, 400);
+    if (error instanceof OrderConflictError) return json({ error: error.message }, 409);
+    return json({ error: 'The order visibility could not be changed. Please refresh and try again.' }, 503);
   }
 }

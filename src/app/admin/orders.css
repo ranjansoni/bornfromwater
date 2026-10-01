@@ -52,6 +52,13 @@
 .admin-status-shipped { background:#d9e6ec; }
 .admin-status-delivered { background:#d9e7dc; }
 .admin-status-cancelled { background:#f3d9d4; color:#783929; }
+.admin-status-deleted { background:var(--color-deep); color:var(--color-sand); }
+.admin-deleted-row { background:var(--color-surface); }
+.admin-visibility-filter { margin-bottom:24px; }
+.admin-deleted-filter { display:inline-flex; align-items:center; gap:10px; font-size:13px; cursor:pointer; }
+.admin-main .admin-deleted-filter input { width:18px; height:18px; min-height:18px; padding:0; accent-color:var(--color-accent); }
+.admin-order-deletion { margin-top:24px; }
+.admin-order-deletion .admin-save { margin-top:18px; }
 .admin-cancellation { background:#f3e5df; border-left:3px solid #a45841; padding:12px 16px; font-size:13px; line-height:1.6; margin:0 0 24px; }
 .admin-pagination { display:flex; gap:25px; justify-content:flex-end; align-items:center; font-size:12px; margin-top:25px; }
 .admin-empty { padding:55px 24px; text-align:center; border:1px solid var(--color-divider); }

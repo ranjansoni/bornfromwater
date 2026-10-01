@@ -10,14 +10,14 @@ export type AdminOrder = {
   currency: string; subtotal: number; total: number; shipping: number; tax: number;
   items: StoredCartLine[]; customer: DeliveryContact; originalCustomer: DeliveryContact;
   orderNote: string; status: FulfillmentStatus; carrier: string; trackingNumber: string; trackingUrl: string;
-  internalNote: string; version: number; updatedAt: string | null; paymentIntentId: string | null;
+  internalNote: string; version: number; updatedAt: string | null; paymentIntentId: string | null; deletedAt: string | null;
 };
-export type FulfillmentEvent = { id: string; status: FulfillmentStatus; carrier: string; trackingNumber: string; internalNote: string; createdAt: string };
+export type FulfillmentEvent = { id: string; status: FulfillmentStatus; carrier: string; trackingNumber: string; internalNote: string; createdAt: string; action: 'updated' | 'deleted' | 'restored' };
 const columns = `o.order_id, o.created_at, o.payment_status, o.payment_provider, o.stripe_livemode,
   o.currency, o.total_cents, o.paid_total_cents, o.shipping_cents, o.tax_cents, o.validated_cart,
   o.customer_email, o.shipping_details, o.order_note, o.stripe_payment_intent_id,
   f.status, f.carrier, f.tracking_number, f.tracking_url, f.customer_details, f.internal_note,
-  f.version, f.updated_at AS fulfillment_updated_at`;
+  f.version, f.updated_at AS fulfillment_updated_at, f.deleted_at`;
 const iso = (v: unknown) => new Date(v as string | Date).toISOString();
 const str = (v: unknown) => typeof v === 'string' ? v : '';
 function mapOrder(row: Record<string, unknown>): AdminOrder {
@@ -35,11 +35,12 @@ function mapOrder(row: Record<string, unknown>): AdminOrder {
     carrier: str(row.carrier), trackingNumber: str(row.tracking_number), trackingUrl: str(row.tracking_url),
     internalNote: str(row.internal_note), version: Number(row.version ?? 0),
     updatedAt: row.fulfillment_updated_at ? iso(row.fulfillment_updated_at) : null,
+    deletedAt: row.deleted_at ? iso(row.deleted_at) : null,
     paymentIntentId: row.stripe_payment_intent_id as string | null };
 }
 export class OrderConflictError extends Error {}
 export function createAdminOrderStore(client: Query) {
-  async function listOrders(scope: OrderScope, filter = 'unfulfilled', search = '', page = 1) {
+  async function listOrders(scope: OrderScope, filter = 'unfulfilled', search = '', page = 1, showDeleted = false) {
     const filters = ['unfulfilled', 'packed', 'shipped', 'delivered', 'cancelled', 'all', 'history'];
     if (!filters.includes(filter)) filter = 'unfulfilled';
     page = Math.max(1, Math.min(10000, Math.floor(page) || 1));
@@ -49,15 +50,17 @@ export function createAdminOrderStore(client: Query) {
           AND o.payment_status = 'approved' AND ($3 = 'all' OR COALESCE(f.status, 'unfulfilled') = $3)))
         AND ($4 = '' OR o.order_id::text ILIKE $5 OR COALESCE(f.customer_details->>'email', o.customer_email, '') ILIKE $5
           OR COALESCE(f.customer_details->>'name', o.shipping_details->>'name', '') ILIKE $5 OR f.tracking_number ILIKE $5)
+        AND ($7::boolean OR f.deleted_at IS NULL)
       ORDER BY o.created_at DESC, o.order_id DESC LIMIT 51 OFFSET $6`,
-    [scope.accountId, scope.livemode, filter, search.slice(0, 100), `%${search.slice(0, 100)}%`, (page - 1) * 50]);
+    [scope.accountId, scope.livemode, filter, search.slice(0, 100), `%${search.slice(0, 100)}%`, (page - 1) * 50, showDeleted]);
     return { orders: rows.slice(0, 50).map(mapOrder), hasMore: rows.length > 50, page, filter };
   }
-  async function orderCounts(scope: OrderScope) {
+  async function orderCounts(scope: OrderScope, showDeleted = false) {
     const rows = await client.query(`SELECT COALESCE(f.status, 'unfulfilled') AS status, count(*)::integer AS count
       FROM orders o LEFT JOIN order_fulfillment f USING (order_id)
       WHERE o.payment_provider = 'stripe' AND o.stripe_account_id = $1 AND o.stripe_livemode = $2 AND o.payment_status = 'approved'
-      GROUP BY COALESCE(f.status, 'unfulfilled')`, [scope.accountId, scope.livemode]);
+        AND ($3::boolean OR f.deleted_at IS NULL)
+      GROUP BY COALESCE(f.status, 'unfulfilled')`, [scope.accountId, scope.livemode, showDeleted]);
     return Object.fromEntries(rows.map(r => [String(r.status), Number(r.count)]));
   }
   async function getAdminOrder(orderId: string, scope: OrderScope) {
@@ -68,10 +71,10 @@ export function createAdminOrderStore(client: Query) {
     return rows[0] ? mapOrder(rows[0]) : null;
   }
   async function orderEvents(orderId: string) {
-    const rows = await client.query(`SELECT id, status, carrier, tracking_number, internal_note, created_at FROM order_fulfillment_events
+    const rows = await client.query(`SELECT id, status, carrier, tracking_number, internal_note, created_at, action FROM order_fulfillment_events
       WHERE order_id = $1 ORDER BY id DESC LIMIT 30`, [orderId]);
     return rows.map(r => ({ id: String(r.id), status: r.status as FulfillmentStatus, carrier: str(r.carrier),
-      trackingNumber: str(r.tracking_number), internalNote: str(r.internal_note), createdAt: iso(r.created_at) }));
+      trackingNumber: str(r.tracking_number), internalNote: str(r.internal_note), createdAt: iso(r.created_at), action: r.action as FulfillmentEvent['action'] }));
   }
   async function updateFulfillment(orderId: string, update: FulfillmentUpdate, scope: OrderScope) {
     // Payment verification fields and historical orders are never written here.
@@ -86,13 +89,33 @@ export function createAdminOrderStore(client: Query) {
         tracking_number = EXCLUDED.tracking_number, tracking_url = EXCLUDED.tracking_url,
         customer_details = EXCLUDED.customer_details, internal_note = EXCLUDED.internal_note,
         version = order_fulfillment.version + 1, updated_at = now()
-      WHERE order_fulfillment.version = $8::integer RETURNING *
+      WHERE order_fulfillment.version = $8::integer AND order_fulfillment.deleted_at IS NULL RETURNING *
     ), logged AS (
       INSERT INTO order_fulfillment_events (order_id, status, carrier, tracking_number, internal_note)
       SELECT order_id, status, carrier, tracking_number, internal_note FROM saved RETURNING id
     ) SELECT version FROM saved`, [orderId, update.status, update.carrier, update.trackingNumber, update.trackingUrl,
       JSON.stringify(update.customer), update.internalNote, update.version, scope.accountId, scope.livemode]);
     if (!rows.length) throw new OrderConflictError('This order changed or is not available for fulfillment. Reload it before saving.');
+    return Number(rows[0].version);
+  }
+  async function setOrderDeleted(orderId: string, deleted: boolean, version: number, scope: OrderScope) {
+    // Shares the fulfillment version so a delete cannot race a packing/shipping save.
+    const rows = await client.query(`WITH saved AS (
+      INSERT INTO order_fulfillment (order_id, deleted_at)
+      SELECT order_id, CASE WHEN $2::boolean THEN now() ELSE NULL END FROM orders
+      WHERE order_id = $1 AND payment_provider = 'stripe' AND payment_status = 'approved'
+        AND stripe_account_id = $4 AND stripe_livemode = $5
+        AND (($2::boolean AND $3::integer = 0) OR EXISTS (SELECT 1 FROM order_fulfillment WHERE order_id = $1))
+      ON CONFLICT (order_id) DO UPDATE SET deleted_at = EXCLUDED.deleted_at,
+        version = order_fulfillment.version + 1, updated_at = now()
+      WHERE order_fulfillment.version = $3::integer AND (order_fulfillment.deleted_at IS NULL) = $2::boolean
+      RETURNING *
+    ), logged AS (
+      INSERT INTO order_fulfillment_events (order_id, status, carrier, tracking_number, internal_note, action)
+      SELECT order_id, status, carrier, tracking_number, internal_note,
+        CASE WHEN $2::boolean THEN 'deleted' ELSE 'restored' END FROM saved RETURNING id
+    ) SELECT version FROM saved`, [orderId, deleted, version, scope.accountId, scope.livemode]);
+    if (!rows.length) throw new OrderConflictError('This order changed or is not available. Refresh it before trying again.');
     return Number(rows[0].version);
   }
   async function consumeLoginAttempt() {
@@ -103,7 +126,7 @@ export function createAdminOrderStore(client: Query) {
       RETURNING attempts`);
     return Number(rows[0].attempts) <= 20;
   }
-  return { listOrders, orderCounts, getAdminOrder, orderEvents, updateFulfillment, consumeLoginAttempt };
+  return { listOrders, orderCounts, getAdminOrder, orderEvents, updateFulfillment, setOrderDeleted, consumeLoginAttempt };
 }
 export const adminOrders = createAdminOrderStore({ query: async (query, params) => {
   if (!process.env.DATABASE_URL) throw new Error('Database unavailable.');

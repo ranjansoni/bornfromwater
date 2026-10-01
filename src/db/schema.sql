@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS order_fulfillment (
   tracking_url text NOT NULL DEFAULT '',
   customer_details jsonb NOT NULL DEFAULT '{}'::jsonb,
   internal_note text NOT NULL DEFAULT '',
+  deleted_at timestamptz,
   version integer NOT NULL DEFAULT 1 CHECK (version > 0),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS order_fulfillment_events (
   carrier text NOT NULL,
   tracking_number text NOT NULL,
   internal_note text NOT NULL DEFAULT '',
+  action text NOT NULL DEFAULT 'updated' CHECK (action IN ('updated', 'deleted', 'restored')),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS fulfillment_events_order_idx ON order_fulfillment_events (order_id, id DESC);

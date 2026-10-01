@@ -4,6 +4,8 @@
 
 # Born From Water — Stripe migration handoff
 
+> **Soft deletion (2026-10-01):** Confirmed Stripe orders can be hidden with Delete order, included with Show deleted orders, and restored with their fulfillment details intact. Historical GoDaddy/unpaid records remain read-only. Deletion/restoration is authenticated, origin-checked, version-protected and audited; original orders/payments are untouched. Migration 005 adds operational metadata only. All 86 tests, lint, TypeScript and webpack build pass. See the verification report for hosted checks.
+
 > **Cart reporting (2026-09-30):** Anonymous `/admin/carts` reporting is implemented with recent/24-hour inactive views, 30-day observation window, checkout links and exclusion of matching paid/processing carts. No contact capture or reminder emails. All 79 tests, lint, TypeScript and webpack production build pass. Migration 004 is applied only to Neon `stripe-preview`; all 10 order rows retain checksum `0c9b72ff4e02baba98aaebccb6c97cd5`. See the verification report for deployment/browser verification status.
 
 Prepared 2026-09-29. This is an **unfinished working snapshot**, not a deployable release.
