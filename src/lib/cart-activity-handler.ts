@@ -4,10 +4,12 @@ import { cartActivity } from './cart-activity-store';
 import { catalog } from './catalog-store';
 import { signingSecret } from './orders';
 import type { StoredOrder } from './order-store';
-const defaults = { scope: cartScope, ...cartActivity, snapshot: async (value: unknown, scope: ReturnType<typeof cartScope>) => cartSnapshot(value, scope, signingSecret(), await catalog.list()) };
+import { purchaseEligibility } from './purchase-location';
+const defaults = { purchaseEligibility, scope: cartScope, ...cartActivity, snapshot: async (value: unknown, scope: ReturnType<typeof cartScope>) => cartSnapshot(value, scope, signingSecret(), await catalog.list()) };
 const json = (status: number) => Response.json({ ok: status === 200 }, { status,
   headers: { 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
 export async function handleCartActivity(request: Request, deps = defaults) {
+  if (!deps.purchaseEligibility(request.headers).allowed) return json(403);
   try {
     const scope = deps.scope();
     if (!validCartOrigin(request, scope)) return json(403);

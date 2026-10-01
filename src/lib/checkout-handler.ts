@@ -5,11 +5,14 @@ import { CheckoutExpiredError, checkoutDestination, statusPath } from "@/lib/str
 import { stripeConfiguration } from "@/lib/stripe-config";
 import { catalog } from './catalog-store';
 import { trackCartCheckout } from '@/lib/cart-activity-handler';
+import { purchaseEligibility } from './purchase-location';
 
-const defaults = { getCatalog: catalog.list, createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret, trackCartCheckout };
-const json = (body: object, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
+const defaults = { purchaseEligibility, getCatalog: catalog.list, createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret, trackCartCheckout };
+const json = (body: object, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
 
 export async function handleCheckout(request: Request, deps = defaults) {
+  const eligibility = deps.purchaseEligibility(request.headers);
+  if (!eligibility.allowed) return json({ error: eligibility.message, code: 'CANADA_ONLY' }, 403);
   let body;
   try {
     body = await request.json();

@@ -8,7 +8,7 @@ import { handleCheckout } from '../src/lib/checkout-handler.ts';
 import { handleStripeWebhook } from '../src/lib/stripe-webhook.ts';
 import { validateCart, verifyOrderToken } from '../src/lib/orders.ts';
 import { products } from '../src/lib/catalog-seed.ts';
-import { checkoutId, accountId, config, sdk, secret, session, webhookRequest } from './fixtures.mjs';
+import { checkoutId, accountId, config, sdk, secret, session, webhookRequest, vercelPurchaseEligibility } from './fixtures.mjs';
 import { POST as retiredCharge } from '../src/app/api/checkout/charge/route.ts';
 
 process.env.ORDER_SIGNING_SECRET = 'test-only-signing-secret-at-least-32-characters';
@@ -38,11 +38,11 @@ function harness() {
       retrieve: async () => current,
     } } };
   const deps = { ...store, stripeClient: () => stripe, stripeConfiguration: () => config, webhookSecret: () => secret };
-  const checkoutDeps = { ...deps, getCatalog: async () => products, signingSecret: () => process.env.ORDER_SIGNING_SECRET,
+  const checkoutDeps = { ...deps, purchaseEligibility: vercelPurchaseEligibility, getCatalog: async () => products, signingSecret: () => process.env.ORDER_SIGNING_SECRET,
     checkoutDestination: order => checkoutDestination(order, deps) };
   return { deps, checkoutDeps, stripe, requests, get current() { return current; }, set current(v) { current = v; } };
 }
-const request = (body = { items, checkoutId }) => new Request('http://localhost/api/checkout', { method: 'POST', body: JSON.stringify(body) });
+const request = (body = { items, checkoutId }, country = 'CA') => new Request('http://localhost/api/checkout', { method: 'POST', headers: { 'x-vercel-ip-country': country }, body: JSON.stringify(body) });
 async function pending() { return store.createPendingOrder(cart.lines, cart.totalCents, checkoutId, false, accountId); }
 async function started(h) {
   const initial = await pending(); await checkoutDestination(initial, h.deps); return store.getOrder(initial.orderId);
@@ -63,6 +63,18 @@ test('concurrent requests create one order and reuse frozen Session parameters',
   const persisted = await store.getOrderByCheckoutRequest(checkoutId);
   assert.equal(persisted.stripeSessionId, h.current.id);
   assert.equal(persisted.stripeAccountId, accountId);
+});
+test('country rejection preserves an existing checkout and Canadian retries still reuse it', async () => {
+  const h = harness(); const active = await started(h);
+  for (const country of ['US', 'IN', 'GB', '']) {
+    const response = await handleCheckout(request(undefined, country), h.checkoutDeps);
+    assert.equal(response.status, 403); assert.equal((await response.json()).code, 'CANADA_ONLY');
+    assert.deepEqual(await store.getOrder(active.orderId), active);
+    assert.equal(h.requests.length, 1);
+  }
+  assert.equal((await handleCheckout(request(), h.checkoutDeps)).status, 200);
+  assert.equal(h.requests.length, 1);
+  assert.deepEqual(await store.getOrder(active.orderId), active);
 });
 test('cart reporting receives the saved checkout but cannot make a successful checkout fail', async () => {
   const h = harness(); let observed;

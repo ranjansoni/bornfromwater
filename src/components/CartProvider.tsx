@@ -13,12 +13,14 @@ import {
 import { type Product } from "@/lib/products";
 import { usePathname } from 'next/navigation';
 import { observeCart } from '@/lib/cart-tracking-client';
+import { LOCATION_UNAVAILABLE_MESSAGE, type PurchaseEligibility } from '@/lib/purchase-policy';
 
 const STORAGE_KEY = "born-from-water-cart-v1";
 const MAX_QUANTITY = 10;
 
 export type CartItem = { slug: string; quantity: number };
 export type CartLine = CartItem & { product: Product };
+type CatalogResponse = { products: Product[]; purchaseEligibility: PurchaseEligibility };
 
 type CartContextValue = {
   items: CartItem[];
@@ -26,11 +28,12 @@ type CartContextValue = {
   itemCount: number;
   totalCents: number;
   ready: boolean;
+  purchaseEligibility: PurchaseEligibility;
   unavailableItems: CartItem[];
   getProduct: (slug: string) => Product | undefined;
-  refreshCatalog: () => Promise<void>;
-  addItem: (slug: string) => void;
-  setQuantity: (slug: string, quantity: number) => void;
+  refreshCatalog: () => Promise<CatalogResponse>;
+  addItem: (slug: string) => Promise<boolean>;
+  setQuantity: (slug: string, quantity: number) => Promise<void>;
   removeItem: (slug: string) => void;
   clearCart: () => void;
 };
@@ -60,15 +63,26 @@ function sanitizeItems(value: unknown): CartItem[] {
   });
 }
 
-export function CartProvider({ children, initialProducts }: { children: ReactNode; initialProducts: Product[] }) {
+export function CartProvider({ children, initialProducts, initialPurchaseEligibility }: {
+  children: ReactNode; initialProducts: Product[]; initialPurchaseEligibility: PurchaseEligibility;
+}) {
   const [products, setProducts] = useState(initialProducts);
+  const [purchaseEligibility, setPurchaseEligibility] = useState(initialPurchaseEligibility);
   const path = usePathname();
   const getProduct = useCallback((slug: string) => products.find(p => p.slug === slug), [products]);
   const refreshCatalog = useCallback(async () => {
-    const response = await fetch('/api/catalog', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Could not refresh the catalogue. Please reload and try again.');
-    const data = await response.json();
-    setProducts(data.products);
+    try {
+      const response = await fetch('/api/catalog', { cache: 'no-store' });
+      if (!response.ok) throw new Error('Could not refresh the catalogue. Please reload and try again.');
+      const data: CatalogResponse = await response.json();
+      if (!Array.isArray(data.products) || typeof data.purchaseEligibility?.allowed !== 'boolean') throw new Error('Please reload and try again.');
+      setProducts(data.products);
+      setPurchaseEligibility(data.purchaseEligibility);
+      return data;
+    } catch (error) {
+      setPurchaseEligibility({ allowed: false, message: LOCATION_UNAVAILABLE_MESSAGE });
+      throw error;
+    }
   }, []);
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
@@ -104,7 +118,7 @@ export function CartProvider({ children, initialProducts }: { children: ReactNod
   }, [items, ready]);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !purchaseEligibility.allowed) return;
     const record = () => observeCart(items);
     const sync = () => { if (document.visibilityState === 'visible') observeCart(items); };
     const timer = window.setTimeout(record, 400);
@@ -116,7 +130,7 @@ export function CartProvider({ children, initialProducts }: { children: ReactNod
       window.removeEventListener('pagehide', record);
       document.removeEventListener('visibilitychange', record);
     };
-  }, [items, ready]);
+  }, [items, ready, purchaseEligibility.allowed]);
 
   useEffect(() => {
     const changed = (event: StorageEvent) => {
@@ -133,9 +147,12 @@ export function CartProvider({ children, initialProducts }: { children: ReactNod
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const addItem = useCallback((slug: string) => {
-    const product = getProduct(slug);
-    if (!product || !product.active || product.placeholder) return;
+  const addItem = useCallback(async (slug: string) => {
+    if (!purchaseEligibility.allowed) return false;
+    let latest;
+    try { latest = await refreshCatalog(); } catch { return false; }
+    const product = latest.products.find(p => p.slug === slug);
+    if (!latest.purchaseEligibility.allowed || !product?.active || product.placeholder) return false;
     const quantity = Math.min(
       MAX_QUANTITY,
       (items.find((item) => item.slug === slug)?.quantity ?? 0) + 1,
@@ -151,13 +168,21 @@ export function CartProvider({ children, initialProducts }: { children: ReactNod
       );
     });
     setNotice({ productName: product.name, quantity });
-  }, [items, getProduct]);
+    return true;
+  }, [items, purchaseEligibility.allowed, refreshCatalog]);
 
-  const setQuantity = useCallback((slug: string, quantity: number) => {
+  const setQuantity = useCallback(async (slug: string, quantity: number) => {
     if (!Number.isInteger(quantity)) return;
     if (quantity < 1) {
       setItems((current) => current.filter((item) => item.slug !== slug));
       return;
+    }
+    if (quantity > (items.find(item => item.slug === slug)?.quantity ?? 0)) {
+      if (!purchaseEligibility.allowed) return;
+      let latest;
+      try { latest = await refreshCatalog(); } catch { return; }
+      const product = latest.products.find(p => p.slug === slug);
+      if (!latest.purchaseEligibility.allowed || !product?.active || product.placeholder) return;
     }
     setItems((current) =>
       current.map((item) =>
@@ -166,7 +191,7 @@ export function CartProvider({ children, initialProducts }: { children: ReactNod
           : item,
       ),
     );
-  }, []);
+  }, [items, purchaseEligibility.allowed, refreshCatalog]);
 
   const removeItem = useCallback((slug: string) => {
     setItems((current) => current.filter((item) => item.slug !== slug));
@@ -192,12 +217,13 @@ export function CartProvider({ children, initialProducts }: { children: ReactNod
         0,
       ),
       ready,
+      purchaseEligibility,
       addItem,
       setQuantity,
       removeItem,
       clearCart,
     };
-  }, [items, ready, addItem, setQuantity, removeItem, clearCart, getProduct, refreshCatalog]);
+  }, [items, ready, purchaseEligibility, addItem, setQuantity, removeItem, clearCart, getProduct, refreshCatalog]);
 
   return (
     <CartContext.Provider value={value}>

@@ -12,7 +12,7 @@ import { handleCheckout } from '../src/lib/checkout-handler.ts';
 import { productJsonLd } from '../src/lib/products.ts';
 import { products } from '../src/lib/catalog-seed.ts';
 import { adminConfiguration, adminCookieName, createAdminSession, hashAdminPassword } from '../src/lib/admin-auth.ts';
-import { config } from './fixtures.mjs';
+import { config, vercelPurchaseEligibility } from './fixtures.mjs';
 
 const db = new PGlite();
 await db.exec(await readFile(new URL('../src/db/schema.sql', import.meta.url), 'utf8'));
@@ -106,9 +106,9 @@ test('editable strings cannot terminate product JSON-LD or change stable identif
 test('new checkout uses database pricing and rejects a stale displayed price without inserting an order', async () => {
   await catalog.update(original.slug, validateCatalogUpdate(fields(original, { price: '72.35', name: 'New owner name' })));
   const checkoutId = randomUUID();
-  const deps = { ...orders, getCatalog: catalog.list, stripeConfiguration: () => config,
+  const deps = { ...orders, purchaseEligibility: vercelPurchaseEligibility, getCatalog: catalog.list, stripeConfiguration: () => config,
     signingSecret: () => 'unused-in-this-test', checkoutDestination: async () => 'https://checkout.stripe.com/example' };
-  const checkoutRequest = (price) => new Request('https://shop.example/api/checkout', { method: 'POST', body: JSON.stringify({ checkoutId,
+  const checkoutRequest = (price) => new Request('https://shop.example/api/checkout', { method: 'POST', headers: { 'x-vercel-ip-country': 'CA' }, body: JSON.stringify({ checkoutId,
     items: [{ slug: original.slug, quantity: 1, priceCents: 1 }], expectedPrices: { [original.slug]: price } }) });
   const stale = await handleCheckout(checkoutRequest(6500), deps);
   assert.equal(stale.status, 409); assert.equal((await stale.json()).code, 'CATALOG_CHANGED');
@@ -119,13 +119,13 @@ test('new checkout uses database pricing and rejects a stale displayed price wit
   await catalog.update(original.slug, validateCatalogUpdate(fields(original, { version: 2, availability: 'disabled', price: '99' })));
   assert.equal((await handleCheckout(checkoutRequest(1), { ...deps, getCatalog: () => { throw new Error('Existing checkouts must keep their snapshots'); } })).status, 200);
   assert.deepEqual(await orders.getOrderByCheckoutRequest(checkoutId), saved);
-  const fresh = new Request('https://shop.example/api/checkout', { method: 'POST', body: JSON.stringify({ checkoutId: randomUUID(), items: [{ slug: original.slug, quantity: 1 }] }) });
+  const fresh = new Request('https://shop.example/api/checkout', { method: 'POST', headers: { 'x-vercel-ip-country': 'CA' }, body: JSON.stringify({ checkoutId: randomUUID(), items: [{ slug: original.slug, quantity: 1 }] }) });
   assert.equal((await handleCheckout(fresh, deps)).status, 400);
 });
 test('catalogue database failure fails closed instead of charging a hardcoded price', async () => {
   let inserted = false;
-  const deps = { ...orders, getCatalog: async () => { throw new Error('DB unavailable'); }, stripeConfiguration: () => config,
+  const deps = { ...orders, purchaseEligibility: vercelPurchaseEligibility, getCatalog: async () => { throw new Error('DB unavailable'); }, stripeConfiguration: () => config,
     signingSecret: () => '', createPendingOrder: async () => { inserted = true; }, checkoutDestination: async () => '' };
-  const response = await handleCheckout(new Request('https://shop.example/api/checkout', { method: 'POST', body: JSON.stringify({ checkoutId: randomUUID(), items: [{ slug: original.slug, quantity: 1 }] }) }), deps);
+  const response = await handleCheckout(new Request('https://shop.example/api/checkout', { method: 'POST', headers: { 'x-vercel-ip-country': 'CA' }, body: JSON.stringify({ checkoutId: randomUUID(), items: [{ slug: original.slug, quantity: 1 }] }) }), deps);
   assert.equal(response.status, 503); assert.equal(inserted, false);
 });

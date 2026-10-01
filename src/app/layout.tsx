@@ -4,6 +4,8 @@ import { StoreAnalytics } from "@/components/StoreAnalytics";
 import { StoreShell } from "@/components/StoreShell";
 import "./globals.css";
 import { getPublicCatalog } from "@/lib/catalog-store";
+import { headers } from 'next/headers';
+import { purchaseEligibility } from '@/lib/purchase-location';
 export const dynamic = "force-dynamic";
 
 const archivo = Archivo({
@@ -35,10 +37,11 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const products = await getPublicCatalog();
+  const eligibility = purchaseEligibility(await headers());
   return (
     <html lang="en-CA" className={archivo.variable}>
       <body>
-        <StoreShell products={products}>{children}</StoreShell>
+        <StoreShell products={products} purchaseEligibility={eligibility}>{children}</StoreShell>
       </body>
       <StoreAnalytics />
     </html>

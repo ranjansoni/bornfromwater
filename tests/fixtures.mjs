@@ -1,4 +1,6 @@
 import Stripe from 'stripe';
+import { purchaseEligibility } from '../src/lib/purchase-location.ts';
+export const vercelPurchaseEligibility = headers => purchaseEligibility(headers, { VERCEL: '1', NODE_ENV: 'production' });
 export const checkoutId = '22222222-2222-4222-8222-222222222222';
 export const orderId = '11111111-1111-4111-8111-111111111111';
 export const accountId = 'acct_sandbox';

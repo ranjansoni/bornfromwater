@@ -1,5 +1,37 @@
 # Stripe migration verification — 2026-09-29
 
+## Canada-only purchasing — 2026-10-01
+
+- Purchasing eligibility comes from Vercel's `x-vercel-ip-country` on Vercel
+  deployments only. `CA` is allowed; other, missing or malformed countries are
+  blocked. The country is not inferred from browser language, timezone, request
+  parameters or customer-entered addresses. The public catalogue stays readable,
+  with eligibility in a private, uncached response.
+- Storefront Add to cart, cart quantity increases and checkout controls honor this
+  policy. Adds and increases fetch fresh eligibility, and navigation/focus refresh
+  it too. Failed refreshes disable purchasing until a successful refresh. Existing
+  stored carts are preserved and can still be reduced/cleared.
+- Checkout and cart-observation POSTs return 403 before reading/mutating orders or
+  contacting Stripe. A rejected retry retains its original checkout identity.
+  The restriction does not apply to admin, signed order-status pages or webhook
+  handlers. There are no database changes or modifications to historical orders.
+- All 102 tests, lint, TypeScript and the production webpack build pass. Coverage
+  includes Canada/foreign/unknown/malformed countries, non-Vercel fail-closed
+  behavior, alternate-header rejection, no downstream side effects, immutable
+  existing checkouts with Canadian retry recovery, and server-rendered enabled/
+  disabled storefront controls. Existing payment/webhook tests also pass.
+- Local `next dev` without Vercel environment variables permits development;
+  this exception never applies to hosted builds. Local production builds need a
+  trusted Vercel environment for purchasing. There is no deployed test override.
+- Limitations: this is IP geolocation, not proof of residency. VPNs/proxies and
+  geolocation errors can affect eligibility. A Stripe-hosted Session URL issued
+  while eligible may still be opened directly afterward; the store cannot apply
+  its IP guard inside Stripe's hosted page. Stripe still requires Canadian
+  shipping addresses. Browser-local storage can be manually edited, but a forged
+  cart cannot bypass the checkout endpoint's country check.
+- Hosted preview verification: pending deployment of this change. Production and
+  the separately paused live-preview branch remain unchanged.
+
 ## Dynamic product catalogue — 2026-10-01
 
 - Code commit `058c800` deployed successfully to the existing sandbox preview as

@@ -9,13 +9,14 @@ import { cardImage, formatCad } from "@/lib/products";
 import { checkoutCartTracking } from '@/lib/cart-tracking-client';
 
 export function CartView({ checkout = false }: { checkout?: boolean }) {
-  const { items, lines, totalCents, ready, setQuantity, removeItem, unavailableItems, refreshCatalog } = useCart();
+  const { items, lines, totalCents, ready, setQuantity, removeItem, unavailableItems, refreshCatalog, purchaseEligibility } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [endedAttempt, setEndedAttempt] = useState<string | null>(null);
   const [previousCart, setPreviousCart] = useState(false);
 
   async function beginPayment(resumePrevious = false) {
+    if (!purchaseEligibility.allowed) { setError(purchaseEligibility.message ?? 'Shopping is currently available only within Canada.'); return; }
     setSubmitting(true);
     setError("");
 
@@ -44,6 +45,7 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
         forgetAttempt(sessionStorage, checkoutId);
         await refreshCatalog();
       }
+      if (result.code === 'CANADA_ONLY') await refreshCatalog().catch(() => {});
       if (result.code === "CHECKOUT_ENDED" && result.checkoutId === checkoutId) setEndedAttempt(checkoutId);
       if (!response.ok || !result.paymentPath) {
         throw new Error(result.error ?? "Checkout could not be started.");
@@ -116,7 +118,7 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
                         id={`quantity-${product.slug}`}
                         type="number"
                         min="1"
-                        max="10"
+                        max={purchaseEligibility.allowed ? 10 : quantity}
                         value={quantity}
                         onChange={(event) => setQuantity(product.slug, Number(event.target.value))}
                         className="w-16 border-2 border-divider bg-transparent px-2 py-1"
@@ -154,12 +156,12 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
             </p>
           )}
           {previousCart && !endedAttempt && (
-            <button type="button" disabled={submitting} onClick={() => beginPayment(true)} className="mt-4 text-accent-700 underline">
+            <button type="button" disabled={submitting || !purchaseEligibility.allowed} onClick={() => beginPayment(true)} className="mt-4 text-accent-700 underline disabled:opacity-60">
               Review previous checkout
             </button>
           )}
           {endedAttempt && (
-            <button type="button" onClick={() => {
+            <button type="button" disabled={submitting || !purchaseEligibility.allowed} onClick={() => {
               forgetAttempt(sessionStorage, endedAttempt);
               setEndedAttempt(null);
               setPreviousCart(false);
@@ -173,11 +175,13 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
             <button
               type="button"
               onClick={() => beginPayment()}
-              disabled={submitting || unavailableItems.length > 0}
-              className="mt-6 w-full bg-accent px-5 py-[14px] text-left text-[13px] font-extrabold tracking-[0.1em] text-sand uppercase hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
+              disabled={submitting || unavailableItems.length > 0 || !purchaseEligibility.allowed}
+              className="mt-6 w-full bg-accent px-5 py-[14px] text-left text-[13px] font-extrabold tracking-[0.1em] text-sand uppercase hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting ? "Preparing secure payment…" : "Continue to payment"}
+              {!purchaseEligibility.allowed ? 'Canada only' : submitting ? "Preparing secure payment…" : "Continue to payment"}
             </button>
+          ) : !purchaseEligibility.allowed ? (
+            <button type="button" disabled className="mt-6 w-full cursor-not-allowed bg-accent px-5 py-[14px] text-left text-[13px] font-extrabold tracking-[0.1em] text-sand uppercase opacity-60">Canada only</button>
           ) : (
             <Link
               href="/checkout"

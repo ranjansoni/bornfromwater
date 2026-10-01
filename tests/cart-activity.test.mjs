@@ -10,7 +10,7 @@ import { handleCartActivity } from '../src/lib/cart-activity-handler.ts';
 import { createOrderStore } from '../src/lib/order-store.ts';
 import { validateCart } from '../src/lib/orders.ts';
 import { products } from '../src/lib/catalog-seed.ts';
-import { config } from './fixtures.mjs';
+import { config, vercelPurchaseEligibility } from './fixtures.mjs';
 
 const db = new PGlite();
 const migration = await readFile(new URL('../src/db/migrations/004-cart-activity.sql', import.meta.url), 'utf8');
@@ -114,9 +114,9 @@ test('retention prunes expired cart observations and links while preserving thei
   assert.deepEqual((await db.query('SELECT * FROM orders')).rows, before);
 });
 test('public observation route rejects cross-site, invalid and oversized input without leaking cart data', async () => {
-  const deps = { ...store, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret, products) };
+  const deps = { ...store, purchaseEligibility: vercelPurchaseEligibility, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret, products) };
   const request = (body, origin = config.origin) => new Request(`${config.origin}/api/cart-activity`, { method: 'POST',
-    headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    headers: { origin, 'Content-Type': 'application/json', 'x-vercel-ip-country': 'CA' }, body: JSON.stringify(body) });
   assert.equal((await handleCartActivity(request({ token, revision: 1, items }, 'https://other.example'), deps)).status, 403);
   assert.equal((await handleCartActivity(request({ token, revision: 1, items: [] }, ''), deps)).status, 403);
   assert.equal((await handleCartActivity(request({ token, revision: 1, items: [{ slug: 'missing', quantity: 1 }] }), deps)).status, 400);
@@ -129,8 +129,8 @@ test('public observation route rejects cross-site, invalid and oversized input w
 test('observation throttling is persistent and failures are generic', async () => {
   await store.allowObservation(config);
   await db.exec('UPDATE cart_activity_limits SET attempts = 10000');
-  const deps = { ...store, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret, products) };
-  const request = () => new Request(`${config.origin}/api/cart-activity`, { method: 'POST', headers: { origin: config.origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ token, revision: 1, items }) });
+  const deps = { ...store, purchaseEligibility: vercelPurchaseEligibility, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret, products) };
+  const request = () => new Request(`${config.origin}/api/cart-activity`, { method: 'POST', headers: { origin: config.origin, 'Content-Type': 'application/json', 'x-vercel-ip-country': 'CA' }, body: JSON.stringify({ token, revision: 1, items }) });
   assert.equal((await handleCartActivity(request(), deps)).status, 429);
   await db.exec("UPDATE cart_activity_limits SET window_start = now() - interval '2 hours'");
   assert.equal((await handleCartActivity(request(), deps)).status, 200);
