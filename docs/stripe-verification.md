@@ -1,5 +1,18 @@
 # Stripe migration verification — 2026-09-29
 
+## Order cancellation — 2026-09-30
+
+- Added manual **Cancelled** fulfillment status, a dedicated list/count, required
+  reason in internal notes, and a permanent activity-note snapshot. Cancellation
+  does not call Stripe, issue/confirm a refund, or change the payment record.
+- All 68 tests, ESLint, TypeScript and the production webpack build pass. Tests
+  cover upgrading the previous operational schema, required cancellation reasons,
+  queue/count changes, reopening, stale edits, and original-order preservation.
+- Migration 003 was applied only to Neon `stripe-preview`. Before/after checksums
+  matched for all 10 orders (`0c9b72ff4e02baba98aaebccb6c97cd5`), fulfillment records
+  (`8b2c246403478c1ad2a83f95aaa6ec7e`), and existing activity fields
+  (`b683bef68fa6f157465d6656fe8510cc`, excluding the new empty note column).
+
 ## Owner portal — 2026-09-30
 
 - 65 automated tests pass, including authentication, CSRF, throttling, pinned

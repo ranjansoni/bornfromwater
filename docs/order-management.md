@@ -7,6 +7,23 @@ delivery contact details, add a carrier, tracking number/link, and internal note
 Each successful save records an activity entry. Conflicting edits in another tab
 are rejected so they cannot silently overwrite one another.
 
+## Cancelling an order and refunding a payment
+
+Select **Cancelled**, add the cancellation reason to **Internal notes**, and
+click **Cancel order**. This removes the order from active fulfillment queues;
+it remains in **Cancelled** and **All paid orders**. The cancellation reason is
+retained in activity history, including if the order is later reopened.
+
+Cancellation does **not** issue or confirm a refund or send a customer email.
+Use **View payment in Stripe** to issue a full or partial refund in Stripe and
+check its result there. Stripe refunds do not automatically change fulfillment
+status in this version. A partial refund need not cancel an order that will
+still be shipped. If you reopen a cancelled order, check the payment/refund and
+customer's wishes first; reopening does not charge the customer again.
+
+Stripe's [refund documentation](https://docs.stripe.com/refunds) describes the
+Dashboard refund steps and payment/refund status distinction.
+
 This is a manual fulfillment tool. Saving an order does not buy postage, send a
 customer email, change a payment, issue a refund, or reserve stock. Use the payment
 link on the order to check Stripe for refunds or disputes before shipping. Refund
@@ -29,9 +46,13 @@ from live payments. Abandoned or unpaid checkouts do not create a fulfillment jo
 ## Database setup
 
 For an existing migrated Stripe database, run
-`src/db/migrations/002-order-management.sql`. It is repeatable and only adds
+`src/db/migrations/002-order-management.sql`, followed by
+`src/db/migrations/003-order-cancellation.sql`. Migration 002 is repeatable and only adds
 `order_fulfillment`, `order_fulfillment_events`, and `admin_login_limits` plus an
 index. New databases can use `src/db/schema.sql` directly.
+Migration 003 expands the fulfillment status constraint and adds an activity-note
+snapshot, without modifying `orders` or existing operational records. Apply it
+before deploying cancellation support.
 
 The migration was applied only to Neon `stripe-preview`
 (`br-mute-frost-axxyl0ob`). Before and after, the complete nine-row `orders` table

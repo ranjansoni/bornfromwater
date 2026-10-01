@@ -172,7 +172,7 @@ intent ID. Use these saved records for packing and customer contact.
 
 Use the private `/admin` [owner portal](order-management.md) to view confirmed paid
 orders, mark them packed/shipped/delivered, and record tracking and delivery details.
-Apply migration `002-order-management.sql` and configure its two private access
+Apply migrations `002-order-management.sql` and `003-order-cancellation.sql`, and configure its two private access
 variables before use. Operational changes are stored separately from original
 orders; historical GoDaddy rows remain read-only.
 

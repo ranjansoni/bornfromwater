@@ -26,6 +26,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     <div className="admin-list-heading"><h2>{result.filter === 'history' ? 'Historical orders' : result.filter === 'all' ? 'All paid orders' : statusLabels[result.filter as keyof typeof statusLabels]}</h2>
       <span>{q ? `Results for “${q}”` : 'Newest first'}</span></div>
     {result.filter === 'history' && <p className="admin-muted admin-hint">Original GoDaddy records are preserved here for reference. They cannot be changed in this portal.</p>}
+    {result.filter === 'cancelled' && <p className="admin-cancellation">These orders are excluded from fulfillment. Refunds are managed separately in Stripe; a cancellation here does not issue or confirm a refund.</p>}
     {result.orders.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th><span className="sr-only">Open order</span></th></tr></thead>
       <tbody>{result.orders.map(order => <tr key={order.orderId}><td><Link href={`/admin/orders/${order.orderId}`} className="admin-order-number">#{order.orderId.slice(0, 8).toUpperCase()}</Link><small>{orderDate(order.createdAt)}</small></td>
         <td><strong>{order.customer.name || 'Not recorded'}</strong><small>{order.customer.email || '—'}</small></td>

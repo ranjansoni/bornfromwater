@@ -13,6 +13,8 @@ const db = new PGlite();
 await db.exec(await readFile(new URL('../src/db/schema.sql', import.meta.url), 'utf8'));
 const migration = await readFile(new URL('../src/db/migrations/002-order-management.sql', import.meta.url), 'utf8');
 await db.exec(migration);
+const cancellationMigration = await readFile(new URL('../src/db/migrations/003-order-cancellation.sql', import.meta.url), 'utf8');
+await db.exec(cancellationMigration);
 const store = createAdminOrderStore({ query: async (sql, params) => (await db.query(sql, params)).rows });
 const scope = { accountId, livemode: false };
 const contact = { name: 'Test Buyer', email: 'test@example.com', phone: '', line1: '123 Test Street', line2: '', city: 'Vancouver', province: 'BC', postalCode: 'V6B 1A1', country: 'CA' };
@@ -34,6 +36,25 @@ test('repeatable operational migration leaves all original order columns byte-fo
   await db.exec(migration); await db.exec(migration);
   assert.deepEqual((await db.query('SELECT * FROM orders')).rows, before);
 });
+test('cancellation migration upgrades the previous schema without changing orders or operational history', async () => {
+  const previous = new PGlite();
+  try {
+    await previous.exec('CREATE TABLE orders (order_id uuid PRIMARY KEY, payment_status text NOT NULL)');
+    await previous.exec(migration);
+    await previous.query("INSERT INTO orders VALUES ($1, 'approved')", [orderId]);
+    await previous.query("INSERT INTO order_fulfillment (order_id, status, internal_note) VALUES ($1, 'packed', 'Keep existing note')", [orderId]);
+    await previous.query("INSERT INTO order_fulfillment_events (order_id, status, carrier, tracking_number) VALUES ($1, 'packed', '', '')", [orderId]);
+    const ordersBefore = (await previous.query('SELECT * FROM orders')).rows;
+    const fulfillmentBefore = (await previous.query('SELECT * FROM order_fulfillment')).rows;
+    const eventsBefore = (await previous.query('SELECT * FROM order_fulfillment_events')).rows;
+    await previous.exec(cancellationMigration); await previous.exec(cancellationMigration);
+    assert.deepEqual((await previous.query('SELECT * FROM orders')).rows, ordersBefore);
+    assert.deepEqual((await previous.query('SELECT * FROM order_fulfillment')).rows, fulfillmentBefore);
+    assert.deepEqual((await previous.query('SELECT * FROM order_fulfillment_events')).rows, eventsBefore.map(e => ({ ...e, internal_note: '' })));
+    await previous.query("UPDATE order_fulfillment SET status = 'cancelled' WHERE order_id = $1", [orderId]);
+    await assert.rejects(previous.query("UPDATE order_fulfillment SET status = 'invalid' WHERE order_id = $1", [orderId]));
+  } finally { await previous.close(); }
+});
 test('order views include only paid orders in the pinned account and environment', async () => {
   await seed(); await seed({ orderId: randomUUID(), live: true }); await seed({ orderId: randomUUID(), paid: 'pending' });
   await seed({ orderId: randomUUID(), account: 'acct_other' }); await seed({ orderId: randomUUID(), provider: 'godaddy', account: null, live: null });
@@ -54,6 +75,22 @@ test('pack, ship and deliver persist tracking with activity while preserving the
   assert.deepEqual((await store.orderEvents(orderId)).map(e => e.status), ['delivered', 'shipped', 'packed']);
   assert.deepEqual((await db.query('SELECT * FROM orders')).rows, original);
   assert.equal((await store.getAdminOrder(orderId, scope)).originalCustomer.line2, '');
+});
+test('cancellation leaves payment intact, removes the order from active queues and preserves its reason after reopening', async () => {
+  await seed(); const original = (await db.query('SELECT * FROM orders')).rows;
+  await store.updateFulfillment(orderId, update(), scope);
+  const cancelled = validateFulfillmentUpdate(update({ version: 1, status: 'cancelled', internalNote: 'Customer requested cancellation. Refund handled in Stripe.' }));
+  assert.equal(await store.updateFulfillment(orderId, cancelled, scope), 2);
+  for (const status of ['unfulfilled', 'packed', 'shipped', 'delivered']) assert.equal((await store.listOrders(scope, status)).orders.length, 0);
+  assert.deepEqual(await store.orderCounts(scope), { cancelled: 1 });
+  assert.equal((await store.listOrders(scope, 'cancelled')).orders[0].orderId, orderId);
+  assert.equal((await store.listOrders(scope, 'all')).orders.length, 1);
+  await assert.rejects(store.updateFulfillment(orderId, update({ version: 1, status: 'shipped' }), scope), OrderConflictError);
+  await store.updateFulfillment(orderId, update({ version: 2, status: 'unfulfilled', internalNote: 'Reopened for a test.' }), scope);
+  const events = await store.orderEvents(orderId);
+  assert.deepEqual(events.map(e => e.status), ['unfulfilled', 'cancelled', 'packed']);
+  assert.equal(events[1].internalNote, cancelled.internalNote);
+  assert.deepEqual((await db.query('SELECT * FROM orders')).rows, original);
 });
 test('concurrent saves and retry requests cannot silently overwrite an order or duplicate activity', async () => {
   await seed();
@@ -85,6 +122,11 @@ test('fulfillment validation blocks unsafe links, missing delivery details and u
   }
   assert.equal(validateFulfillmentUpdate(update({ status: 'shipped', carrier: 'Canada Post', internalNote: 'Sent by untracked letter mail.' })).status, 'shipped');
 });
+test('cancellation requires a reason and does not imply a refund', () => {
+  for (const internalNote of ['', '   ']) assert.throws(() => validateFulfillmentUpdate(update({ status: 'cancelled', internalNote })), /cancellation reason/);
+  assert.equal(validateFulfillmentUpdate(update({ status: 'cancelled', internalNote: 'Customer no longer needs it.' })).status, 'cancelled');
+  assert.throws(() => validateFulfillmentUpdate(update({ status: 'refunded', internalNote: 'Not a fulfillment status.' })));
+});
 test('authenticated endpoint saves an order and returns conflicts and validation errors safely', async () => {
   await seed();
   const config = adminConfiguration({ ADMIN_PASSWORD_HASH: await hashAdminPassword('test-only-admin-password'), ADMIN_SESSION_SECRET: 'test-secret-32-characters-long-enough', APP_URL: 'https://shop.example' });
@@ -95,4 +137,7 @@ test('authenticated endpoint saves an order and returns conflicts and validation
   assert.equal(result.status, 200); assert.deepEqual(await result.json(), { ok: true, version: 1 });
   assert.equal((await handleOrderUpdate(req(update()), orderId, deps)).status, 409);
   assert.equal((await handleOrderUpdate(req(update({ version: 1, trackingUrl: 'javascript:alert(1)' })), orderId, deps)).status, 400);
+  assert.equal((await handleOrderUpdate(req(update({ version: 1, status: 'cancelled' })), orderId, deps)).status, 400);
+  assert.equal((await handleOrderUpdate(req(update({ version: 1, status: 'cancelled', internalNote: 'Requested by customer.' })), orderId, deps)).status, 200);
+  assert.equal((await store.getAdminOrder(orderId, scope)).status, 'cancelled');
 });

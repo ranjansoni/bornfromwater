@@ -23,6 +23,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <p className="admin-muted">{orderDate(order.createdAt)}</p></div><span className={`admin-badge admin-status-${order.status}`}>{editable ? statusLabels[order.status] : order.paymentStatus}</span></div>
     {order.provider === 'stripe' && !order.livemode && <p className="admin-sandbox"><strong>Sandbox order</strong> · You can test this workflow without shipping anything.</p>}
     {order.provider === 'godaddy' && <p className="admin-sandbox"><strong>GoDaddy history</strong> · Original record, kept for reference.</p>}
+    {order.status === 'cancelled' && <p className="admin-cancellation"><strong>Order cancelled.</strong> Do not fulfill this order. Cancellation does not confirm a refund; check the payment in Stripe for its current refund status.</p>}
     <div className="admin-detail-grid"><aside>
       <section className="admin-panel"><h2>Order summary</h2><ul className="admin-items">{order.items.map((item, index) => <li key={`${item.sku}-${index}`}>
         <div><strong>{item.name || item.sku}</strong><small>{item.sku} · Qty {item.quantity}</small></div><span>{money(item.unitPriceCents * item.quantity, order.currency)}</span></li>)}</ul>
@@ -36,7 +37,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       {order.carrier && <section className="admin-panel"><h2>Shipment</h2><p className="admin-preserve">{order.carrier}{order.trackingNumber ? `\n${order.trackingNumber}` : '\nUntracked shipment'}</p>
         {order.trackingUrl.startsWith('https://') && <a className="admin-link" href={order.trackingUrl} target="_blank" rel="noopener noreferrer">Track shipment ↗</a>}</section>}
       <section className="admin-panel"><h2>Activity</h2><ol className="admin-activity">{events.map(event => <li key={event.id}><strong>{statusLabels[event.status]} · Order updated</strong>
-        <small>{orderDate(event.createdAt)}</small>{event.carrier && <p>{event.carrier}{event.trackingNumber ? ` · ${event.trackingNumber}` : ''}</p>}</li>)}
+        <small>{orderDate(event.createdAt)}</small>{event.carrier && <p>{event.carrier}{event.trackingNumber ? ` · ${event.trackingNumber}` : ''}</p>}
+        {event.status === 'cancelled' && event.internalNote && <p className="admin-preserve">Reason / notes: {event.internalNote}</p>}</li>)}
         <li><strong>{order.paymentStatus === 'approved' ? 'Order received' : 'Checkout created'}</strong><small>{orderDate(order.createdAt)}</small></li></ol></section>
       <details className="admin-panel"><summary>Original checkout details</summary><p className="admin-preserve">{Object.values(order.originalCustomer).filter(Boolean).join('\n') || 'Not recorded for this historical order.'}</p>
         <small className="admin-muted">Full order ID: {id}</small></details>

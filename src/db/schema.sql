@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE TABLE IF NOT EXISTS order_fulfillment (
   order_id uuid PRIMARY KEY REFERENCES orders(order_id),
-  status text NOT NULL DEFAULT 'unfulfilled' CHECK (status IN ('unfulfilled', 'packed', 'shipped', 'delivered')),
+  status text NOT NULL DEFAULT 'unfulfilled' CHECK (status IN ('unfulfilled', 'packed', 'shipped', 'delivered', 'cancelled')),
   carrier text NOT NULL DEFAULT '',
   tracking_number text NOT NULL DEFAULT '',
   tracking_url text NOT NULL DEFAULT '',
@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS order_fulfillment_events (
   status text NOT NULL,
   carrier text NOT NULL,
   tracking_number text NOT NULL,
+  internal_note text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS fulfillment_events_order_idx ON order_fulfillment_events (order_id, id DESC);

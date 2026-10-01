@@ -12,7 +12,7 @@ export type AdminOrder = {
   orderNote: string; status: FulfillmentStatus; carrier: string; trackingNumber: string; trackingUrl: string;
   internalNote: string; version: number; updatedAt: string | null; paymentIntentId: string | null;
 };
-export type FulfillmentEvent = { id: string; status: FulfillmentStatus; carrier: string; trackingNumber: string; createdAt: string };
+export type FulfillmentEvent = { id: string; status: FulfillmentStatus; carrier: string; trackingNumber: string; internalNote: string; createdAt: string };
 const columns = `o.order_id, o.created_at, o.payment_status, o.payment_provider, o.stripe_livemode,
   o.currency, o.total_cents, o.paid_total_cents, o.shipping_cents, o.tax_cents, o.validated_cart,
   o.customer_email, o.shipping_details, o.order_note, o.stripe_payment_intent_id,
@@ -40,7 +40,7 @@ function mapOrder(row: Record<string, unknown>): AdminOrder {
 export class OrderConflictError extends Error {}
 export function createAdminOrderStore(client: Query) {
   async function listOrders(scope: OrderScope, filter = 'unfulfilled', search = '', page = 1) {
-    const filters = ['unfulfilled', 'packed', 'shipped', 'delivered', 'all', 'history'];
+    const filters = ['unfulfilled', 'packed', 'shipped', 'delivered', 'cancelled', 'all', 'history'];
     if (!filters.includes(filter)) filter = 'unfulfilled';
     page = Math.max(1, Math.min(10000, Math.floor(page) || 1));
     const rows = await client.query(`SELECT ${columns} FROM orders o LEFT JOIN order_fulfillment f USING (order_id)
@@ -68,10 +68,10 @@ export function createAdminOrderStore(client: Query) {
     return rows[0] ? mapOrder(rows[0]) : null;
   }
   async function orderEvents(orderId: string) {
-    const rows = await client.query(`SELECT id, status, carrier, tracking_number, created_at FROM order_fulfillment_events
+    const rows = await client.query(`SELECT id, status, carrier, tracking_number, internal_note, created_at FROM order_fulfillment_events
       WHERE order_id = $1 ORDER BY id DESC LIMIT 30`, [orderId]);
     return rows.map(r => ({ id: String(r.id), status: r.status as FulfillmentStatus, carrier: str(r.carrier),
-      trackingNumber: str(r.tracking_number), createdAt: iso(r.created_at) }));
+      trackingNumber: str(r.tracking_number), internalNote: str(r.internal_note), createdAt: iso(r.created_at) }));
   }
   async function updateFulfillment(orderId: string, update: FulfillmentUpdate, scope: OrderScope) {
     // Payment verification fields and historical orders are never written here.
@@ -88,8 +88,8 @@ export function createAdminOrderStore(client: Query) {
         version = order_fulfillment.version + 1, updated_at = now()
       WHERE order_fulfillment.version = $8::integer RETURNING *
     ), logged AS (
-      INSERT INTO order_fulfillment_events (order_id, status, carrier, tracking_number)
-      SELECT order_id, status, carrier, tracking_number FROM saved RETURNING id
+      INSERT INTO order_fulfillment_events (order_id, status, carrier, tracking_number, internal_note)
+      SELECT order_id, status, carrier, tracking_number, internal_note FROM saved RETURNING id
     ) SELECT version FROM saved`, [orderId, update.status, update.carrier, update.trackingNumber, update.trackingUrl,
       JSON.stringify(update.customer), update.internalNote, update.version, scope.accountId, scope.livemode]);
     if (!rows.length) throw new OrderConflictError('This order changed or is not available for fulfillment. Reload it before saving.');

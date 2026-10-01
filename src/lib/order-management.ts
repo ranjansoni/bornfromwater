@@ -1,7 +1,8 @@
-export const fulfillmentStatuses = ['unfulfilled', 'packed', 'shipped', 'delivered'] as const;
+export const fulfillmentStatuses = ['unfulfilled', 'packed', 'shipped', 'delivered', 'cancelled'] as const;
 export type FulfillmentStatus = typeof fulfillmentStatuses[number];
 export const statusLabels: Record<FulfillmentStatus, string> = {
   unfulfilled: 'To pack', packed: 'Packed', shipped: 'Shipped', delivered: 'Delivered',
+  cancelled: 'Cancelled',
 };
 export type DeliveryContact = {
   name: string; email: string; phone: string; line1: string; line2: string;
@@ -48,6 +49,9 @@ export function validateFulfillmentUpdate(input: unknown): FulfillmentUpdate {
     } catch { throw new OrderInputError('The tracking link must start with https://.'); }
   }
   const internalNote = field(v.internalNote, 'internal notes', 2000);
+  if (v.status === 'cancelled' && !internalNote) {
+    throw new OrderInputError('Add the cancellation reason in internal notes. Refunds are handled separately in Stripe.');
+  }
   if (['shipped', 'delivered'].includes(v.status as string) && (!carrier || (!trackingNumber && !internalNote))) {
     throw new OrderInputError('Add the carrier and tracking number, or explain an untracked shipment in internal notes.');
   }
