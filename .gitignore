@@ -34,6 +34,7 @@ yarn-error.log*
 .env*
 !.env.example
 /admin-access.local.txt
+/admin-production-access.local.txt
 
 # vercel
 .vercel

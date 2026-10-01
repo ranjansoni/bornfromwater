@@ -1,5 +1,57 @@
 # Stripe migration verification — 2026-09-29
 
+## Production launch preparation — 2026-10-01
+
+Current state: **not yet deployed**. The owner authorized public launch, production
+restricted credentials and a seven-day backup. Older preview-only statements in
+this report describe the historical verification stage, not the current scope.
+
+- Production is GitHub `main` at `6da4c4e`, deployed on Vercel project
+  `born-from-water-test-schema`. It still serves the Etsy storefront. The migration
+  branch at `7ac6510` is a fast-forward descendant. Do not push `main` until the
+  missing live API key is configured and verified.
+- Canonical public origin is `https://www.bornfromwater.ca`; the bare domain returns
+  308 to it. Both HTTPS endpoints respond correctly.
+- Neon production is `br-small-queen-ax9251cn` in `sparkling-frost-11144338`, database
+  `bornfromwater`. Migrations 001–006 completed in one transaction with a lock,
+  preflight checksum and exact original-field equality checks before COMMIT.
+  All six historical orders retain checksum `8d0b28f1f4d906715e7ca8f8c18063ab`.
+  No sandbox orders or fulfillment/cart history were copied into production.
+- Approved backup `pre-stripe-launch-2026-10-01` (`br-orange-bread-axz2efk9`)
+  contains the original production data and expires October 8, 2026, 2:14 pm PDT.
+- Production and sandbox each contain nine catalogue products with identical
+  content checksum `e7f421f7b685d3a5587f60eed73140fb` (excluding versions/timestamps).
+- Vercel Production has `STRIPE_ACCOUNT_ID=acct_1UKmE8E2BkvcUrRY`,
+  `STRIPE_ALLOW_LIVE=true`, `APP_URL=https://www.bornfromwater.ca`,
+  `STRIPE_SHIPPING_COUNTRIES=CA`, `STRIPE_SHIPPING_CENTS=1000`,
+  `STRIPE_AUTOMATIC_TAX=false`, separate `ADMIN_PASSWORD_HASH` and
+  `ADMIN_SESSION_SECRET`, and `STRIPE_WEBHOOK_SECRET`. Secrets are stored as Secret
+  variables. Existing `DATABASE_URL` remains unchanged. The existing
+  `ORDER_SIGNING_SECRET` was extended from Preview to Production and Preview,
+  preserving its value. Sandbox branch-specific credentials remain untouched.
+- Live webhook `we_1ULrQtE2BkvcUrRY238eh8dy` is Active on account
+  `acct_1UKmE8E2BkvcUrRY`, URL `https://www.bornfromwater.ca/api/webhooks/stripe`,
+  snapshot payloads, API `2026-08-26.dahlia`, and exactly four events:
+  `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+  `checkout.session.async_payment_failed`, `checkout.session.expired`.
+  Delivery cannot pass until the new app is deployed; no deliveries have occurred.
+- Production restricted key creation is prepared for Accounts read and Checkout
+  Sessions, Products, Prices, Shipping Rates write. Stripe has emailed the owner
+  a verification link and the creation pop-up is waiting. No live API key exists
+  from this attempt yet. The owner must open that link in another tab of the same
+  Codex in-app browser. Keep the pop-up open and complete creation afterward.
+- Live-account **Successful payment receipt — Email** is enabled and persisted
+  after reload in Communication preferences → Transactions and Balances.
+- Local credentials are in ignored, owner-only `.env.admin.production.local`
+  and `admin-production-access.local.txt`; the captured webhook secret is in
+  ignored `.env.launch.local`. Never commit or print these values.
+- Fresh pre-launch verification: all 102 tests, ESLint, TypeScript, and the webpack
+  production build pass. No payment has been submitted.
+- Remaining: finish live key creation/storage, confirm live account readiness and
+  commit/push the authorized main deployment, verify
+  public catalogue/admin/live Checkout, and verify signed live webhook delivery
+  without charging a card (for example, expire an unpaid app-created Session).
+
 ## Canada-only purchasing — 2026-10-01
 
 - Purchasing eligibility comes from Vercel's `x-vercel-ip-country` on Vercel
