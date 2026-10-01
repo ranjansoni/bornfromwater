@@ -12,8 +12,23 @@
 - Stripe sandbox **Successful payment receipt – Email** preference was enabled
   and verified checked for the owner account, whose email is
   `bornfromwatercanada@gmail.com`. Inbox delivery has not been verified.
-- Deployment credentials and authenticated preview browser verification are
-  pending at this point; see subsequent verification entries for completion.
+- With the owner's approval, both admin credentials were stored as Vercel
+  **Secret** variables scoped only to Preview branch `codex/stripe-migration`.
+  Commit `99a4b69` was redeployed successfully as
+  `dpl_6aa3GSB2SemYzBTSNfc7M58dEjzd`. Production access is unchanged.
+- Authenticated browser verification passed on the stable preview: sign-in,
+  sign-out, protected-route redirect after sign-out, paid-order list, packing,
+  shipping, delivery, tracking link and customer address-line edits. Reloads
+  confirmed persistence; activity entries appeared. Shipping without a carrier
+  and tracking number/note was rejected with an actionable validation message.
+- Sandbox order `25e22760-0ed9-4de8-b5fc-94fcb201b921` was restored to **To pack**
+  with the temporary tracking, internal note and address-line edits cleared.
+  Its verification activity remains. The dashboard now shows three paid test
+  orders, including a subsequent owner checkout `404c6e42-ecba-4f94-abcd-0c391c6f2c25`.
+- All six GoDaddy records are visible; opening a historical order showed a
+  read-only view. After fulfillment tests, the original nine `orders` rows still
+  matched checksum `c0aa3f2be91c4536c298d385a40e5fa4` (excluding only the subsequent
+  owner checkout above). No original payment/order records were modified.
 
 ## Hosted preview setup — 2026-09-30
 

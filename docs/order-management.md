@@ -67,6 +67,11 @@ For deliberate rotation, securely remove the local generated files, rerun the
 generator, replace both deployed values, and redeploy. Use separate credentials
 for production; production access is not enabled by the preview setup.
 
+Preview access was enabled on 2026-09-30 with the owner's approval. Sign-in,
+fulfillment edits, tracking, contact corrections, history and sign-out were
+verified against the isolated sandbox database. Use the local password file
+above to sign in from another browser.
+
 ## Verification
 
 Automated coverage includes password verification, tampered/expired sessions,
