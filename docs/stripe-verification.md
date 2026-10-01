@@ -1,5 +1,40 @@
 # Stripe migration verification — 2026-09-29
 
+## Dynamic product catalogue — 2026-10-01
+
+- Code commit `058c800` deployed successfully to the existing sandbox preview as
+  `dpl_HgkHpMYKjja68LxUx6iKXk4h7Qq1`. The owner can manage all nine products at
+  `/admin/products` using the existing admin login. Storefront design and photo
+  galleries are preserved; database edits drive listings, details, metadata,
+  sitemap, cart observations and new checkout prices.
+- All 95 automated tests, lint, TypeScript and webpack build pass. New coverage
+  uses PGlite to verify exact seed preservation, repeatable migration, owner edits,
+  disabled/coming-soon states, conflict handling and atomic audit records,
+  authentication/origin checks, validation, JSON-LD escaping, database pricing,
+  stale-price rejection, unchanged existing checkouts and database failure behavior.
+- Applied migration 006 only to Neon `stripe-preview` (`br-mute-frost-axxyl0ob`).
+  It added two catalogue tables and imported nine products. The original ten orders
+  retain checksum `0c9b72ff4e02baba98aaebccb6c97cd5` before migration and after all
+  hosted checks (excluding the new unpaid checkout below).
+- Browser verification saved a temporary name and CA$72.35 price for New Beginnings,
+  confirmed storefront wording and cart price, disabled it, confirmed direct-page
+  404 and removal from the Signature collection, and verified an existing cart
+  displayed an unavailable item with payment blocked. Restoring availability worked.
+  Search plus availability filtering returned the expected single product.
+- An actual app-created sandbox Stripe Session displayed the edited name,
+  CA$72.35 merchandise, CA$10 shipping, no tax and CA$82.35 total, Canada only:
+  `cs_test_a1UoPMrw7xs8Xh94AD1V2eJ010zmSFaK2RHegGjHyumVvnUJhPtJWXNR74`.
+  No payment was submitted. Its retained pending order is
+  `db109e9d-b60c-4e1d-b1c5-b110c9188171`, subtotal 7235. It keeps the original checkout
+  snapshot even though the product was subsequently restored.
+- Restored New Beginnings to its original name, CA$65 and Active (version 5);
+  the four edits remain in catalogue audit history. Cleared the test cart.
+  Desktop visual inspection confirmed the editor layout and preserved storefront.
+- Production and the separately prepared live-payment preview were not changed.
+  Catalogue work must be merged and migration 006 applied to the isolated live
+  database before live setup resumes. Sandbox catalogue edits do not automatically
+  propagate across databases. No additional owner credentials were needed.
+
 ## Reversible order deletion — 2026-10-01
 
 - Confirmed Stripe orders now have **Delete order → Confirm delete** and

@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/admin-session';
 import { catalog } from '@/lib/catalog-store';
 import { ProductEditor } from '@/components/admin/ProductEditor';
 
+export const metadata = { title: 'Edit product' };
+
 export default async function AdminProduct({ params }: { params: Promise<{ slug: string }> }) {
   await requireAdmin();
   const product = await catalog.get((await params).slug);

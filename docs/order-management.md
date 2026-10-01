@@ -162,3 +162,34 @@ account/mode isolation, original-order preservation, historical read-only access
 status/tracking updates, unsafe tracking links, and concurrent-edit conflicts.
 Browser verification and preview deployment results are recorded in
 `stripe-verification.md`.
+
+## Product catalogue
+
+`/admin/products` lists all nine migrated products, with search and Active,
+Disabled and Coming soon filters. The owner can edit the name, CAD price, collection,
+stone label, short description, description, meaning, story and display order.
+Save applies to the current environment immediately; no redeployment is needed.
+Existing image galleries, SKUs and URLs are retained. This version edits existing
+products; image uploads and creating new products are not included.
+
+- Active products appear in the shop and can be bought.
+- Coming soon products remain visible but cannot start a new checkout.
+- Disabled products disappear from listings, related products, sitemap and direct
+  public product pages. Items already in a browser cart are labelled unavailable.
+- New checkouts use database prices, never browser-submitted amounts. If a displayed
+  price changed, the buyer must review the refreshed cart before starting payment.
+- Existing orders and already-started checkouts retain their saved name, SKU and
+  price. Disabling a product does not cancel an existing Stripe Checkout Session.
+- Saves use the existing owner session and origin checks, detect conflicting editor
+  versions, and retain an audit snapshot. Text remains plain text; JSON-LD escapes
+  script delimiters. Original order/payment tables are not edited.
+
+Apply `src/db/migrations/006-product-catalog.sql` to each isolated database before
+its application code is deployed. It imports current product data and photo paths
+only when the product does not already exist, preserving owner edits on reruns.
+Runtime never falls back to the old JSON catalogue if the database is unavailable.
+The JSON files and `catalog-seed.ts` are migration/test fixtures only.
+
+The catalogue is isolated by database: changes on the sandbox preview do not change
+production or the prepared live-payment preview. At cutover, explicitly transfer
+approved catalogue edits as well as preserving and reconciling order history.

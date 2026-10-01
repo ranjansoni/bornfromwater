@@ -4,6 +4,8 @@ import { requireAdmin } from '@/lib/admin-session';
 import { catalog } from '@/lib/catalog-store';
 import { cardImage, collectionLabel, formatCad } from '@/lib/products';
 
+export const metadata = { title: 'Products' };
+
 export default async function AdminProducts({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
   await requireAdmin();
   const params = await searchParams;
@@ -20,7 +22,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
       <label>Availability<select name="status" defaultValue={status}><option value="all">All products</option><option value="active">Active</option><option value="disabled">Disabled</option><option value="coming-soon">Coming soon</option></select></label>
       <button className="admin-button admin-secondary">Filter</button>
     </form>
-    <div className="admin-list-heading"><h2>{products.length} products</h2><span>All prices in CAD</span></div>
+    <div className="admin-list-heading"><h2>{products.length} {products.length === 1 ? 'product' : 'products'}</h2><span>All prices in CAD</span></div>
     <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Product</th><th>Collection</th><th>Price</th><th>Availability</th><th /></tr></thead><tbody>
       {products.map(p => { const img = cardImage(p); return <tr key={p.slug}>
         <td><Link className="admin-product-cell" href={`/admin/products/${p.slug}`}>{img && <Image src={img.src} alt="" width={58} height={58} />}<span className="admin-order-number">{p.name}<small>{p.sku}</small></span></Link></td>

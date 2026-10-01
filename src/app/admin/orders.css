@@ -130,7 +130,7 @@
 .admin-catalog-filters label { display:block; font-size:12px; font-weight:600; }
 .admin-catalog-filters input,.admin-catalog-filters select { margin-top:7px; }
 .admin-product-cell { display:flex; align-items:center; gap:16px; }
-.admin-product-cell img { object-fit:cover; flex-shrink:0; }
+.admin-product-cell img { width:58px; height:58px; object-fit:cover; flex-shrink:0; }
 .admin-product-editor { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:32px; margin-top:30px; }
 .admin-product-photos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:20px 0; }
 .admin-product-photos img { width:100%; height:auto; }
