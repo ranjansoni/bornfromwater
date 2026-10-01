@@ -1,5 +1,32 @@
 # Stripe migration verification — 2026-09-29
 
+## Reversible order deletion — 2026-10-01
+
+- Confirmed Stripe orders now have **Delete order → Confirm delete** and
+  **Restore order** controls. Default lists/counts hide deleted orders;
+  **Show deleted orders** includes labelled rows and persists through search,
+  status changes and pagination. Deleted orders cannot be edited for fulfillment.
+- All 86 automated tests, ESLint, TypeScript and the webpack production build
+  pass. Coverage includes migration from the previous schema, hiding/restoring,
+  preserved payment/customer/shipment data, version conflicts, duplicate requests,
+  concurrent fulfillment saves, pagination, authentication/origin checks,
+  validation and account/mode/historical-order boundaries.
+- Migration 005 ran only on Neon `stripe-preview`. Before/after checksums matched
+  for all 10 orders (`0c9b72ff4e02baba98aaebccb6c97cd5`), existing fulfillment fields
+  (`8680dd64b22044b5e54c5727ed59d8ac`, excluding new `deleted_at`), and activity fields
+  (`eb6ec3eb530f955bc79ebe3949e2af88`, excluding new `action`).
+- Commit `f26542e` deployed successfully to Preview as
+  `dpl_3kGb3SYcG1Lkw3Uaz78wKjYfK5iV`. Browser testing soft-deleted sandbox order
+  `25e22760-0ed9-4de8-b5fc-94fcb201b921`, confirmed removal from the default list
+  and count, revealed its Deleted label using the checkbox, searched for it with
+  the checkbox retained, and restored it. The deletion banner blocked editing;
+  restoration returned **To pack**, the original details, and the editable form.
+  Both actions persisted in activity history after navigation.
+- The test order was restored and all three paid sandbox orders remain visible.
+  The owner's shipped order was not modified. After browser testing all 10
+  original order/payment records still matched the checksum above. No orders were
+  permanently deleted, no refund was issued, and production was not deployed.
+
 ## Anonymous cart reporting — 2026-09-30
 
 - Added authenticated `/admin/carts`: recent and potentially abandoned (24-hour

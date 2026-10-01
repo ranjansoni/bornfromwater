@@ -111,6 +111,9 @@ Apply `src/db/migrations/005-order-soft-delete.sql` before deploying soft deleti
 It adds nullable `order_fulfillment.deleted_at` and the activity `action` field,
 defaulting previous entries to `updated`. It does not change the original orders,
 fulfillment values or activity contents. Existing orders are visible by default.
+Migration 005 was applied only to Neon `stripe-preview` on 2026-10-01. Original
+order, fulfillment and activity checksums matched before/after. The deployed
+delete/filter/restore flow was browser-tested; the test order was restored.
 
 The migration was applied only to Neon `stripe-preview`
 (`br-mute-frost-axxyl0ob`). Before and after, the complete nine-row `orders` table
