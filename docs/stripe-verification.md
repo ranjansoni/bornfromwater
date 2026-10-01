@@ -1,5 +1,37 @@
 # Stripe migration verification — 2026-09-29
 
+## Live-payment preview preparation — 2026-10-01
+
+- The owner requested live Stripe on Vercel Preview only; production launch is
+  not authorized. New branch `codex/stripe-live-preview`, code commit `c5cec4b`,
+  deployed Ready as `dpl_79DZ2LAk7mythuo7r6pZEctQVZTD` with stable URL
+  `https://born-from-water-test-schem-git-0f540f-aseemasoni-7180s-projects.vercel.app`.
+- All 87 tests, lint, TypeScript and the webpack build pass. Live preview requires
+  explicit live opt-in plus a matching configured Git branch. Development and
+  other preview branches remain blocked. Checkout/admin show real-payment notices.
+- Neon `stripe-live-preview` (`br-divine-rain-ax1rma02`) was copied from production
+  with no automatic expiry. Migrations 001–005 applied only to this new branch.
+  All six historical orders retain checksum `8d0b28f1f4d906715e7ca8f8c18063ab`
+  before/after, excluding the newly added Stripe columns in the latter checksum.
+  The sandbox's database and orders remain separate and untouched.
+- Live Stripe dashboard `acct_1UKmE8E2BkvcUrRY` reports its payment products are
+  enabled. The MCP connection still exposes only the sandbox. Live
+  `charges_enabled`/`payouts_enabled` have not yet been verified by API.
+- Saved eight non-secret Config variables only for `codex/stripe-live-preview`:
+  live account ID, stable APP_URL, CA shipping, 1000 cents, automatic tax false,
+  both live opt-ins true, and the exact preview branch. No production setting changed.
+- **Not yet ready for live purchases:** restricted live API key, live webhook,
+  isolated DATABASE_URL and branch-specific admin credentials still need setup
+  and a redeployment. Historical ORDER_SIGNING_SECRET already applies to Preview
+  and must be preserved. Browser approval review blocked entering live key creation;
+  explicit approval requests cover restricted live access, secure Vercel storage,
+  and reuse of the existing webhook automation bypass. No live key was created,
+  no live Checkout Session/payment submitted, and no production deploy occurred.
+- After approval: finish secrets and four live webhook events, confirm account
+  readiness/checkout totals and signed webhook delivery, then let the owner submit
+  real payments. Preserve those real orders during any later production cutover;
+  reconcile new GoDaddy production orders created since the database branch copy.
+
 ## Reversible order deletion — 2026-10-01
 
 - Confirmed Stripe orders now have **Delete order → Confirm delete** and
