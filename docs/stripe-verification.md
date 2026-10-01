@@ -1,5 +1,30 @@
 # Stripe migration verification — 2026-09-29
 
+## Anonymous cart reporting — 2026-09-30
+
+- Added authenticated `/admin/carts`: recent and potentially abandoned (24-hour
+  inactivity) views, item quantities/subtotal, last activity and checkout links.
+  No contact collection or reminder emails. Views exclude empty carts and
+  matching paid/processing checkouts and cover the last 30 days.
+- All 79 tests, ESLint, TypeScript and the production webpack build pass. New
+  tests cover replay ordering, clearing, account/mode isolation, trusted prices,
+  24-hour classification, returning activity, paid/processing exclusion without
+  a browser return, declined/expired checkouts, retention, origin checks, limits,
+  repeatable migration and best-effort reporting failures during checkout.
+- Migration 004 was applied only to Neon `stripe-preview`. Before migration,
+  after migration and after browser tests, all 10 `orders` rows matched checksum
+  `0c9b72ff4e02baba98aaebccb6c97cd5`. No payment or fulfillment records were changed.
+- Commit `6448a94` deployed Ready to Preview as
+  `dpl_6m9FKBaBVvUdPkjwxVwAN7K7MFB2`. Authenticated browser checks confirmed a new
+  anonymous New Beginnings cart at CA$65, quantity two at CA$130, and removal
+  hiding the cart. The originally empty browser cart was restored to empty.
+  No additional order or payment was created. Paid exclusion and 24-hour timing
+  were verified in embedded PostgreSQL, rather than waiting or paying again.
+- A follow-up records both item updates and tab visibility changes, including
+  switching away before the debounce fires; only visible tabs send heartbeats.
+  Browser writes time out after five seconds and cart database queries after
+  three seconds. Reporting remains best-effort and never grants payment approval.
+
 ## Order cancellation — 2026-09-30
 
 - Added manual **Cancelled** fulfillment status, a dedicated list/count, required

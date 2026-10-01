@@ -84,16 +84,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
+    const record = () => observeCart(items);
     const sync = () => { if (document.visibilityState === 'visible') observeCart(items); };
-    const timer = window.setTimeout(sync, 400);
+    const timer = window.setTimeout(record, 400);
     const heartbeat = items.length ? window.setInterval(sync, 5 * 60 * 1000) : undefined;
-    const leave = () => observeCart(items);
-    window.addEventListener('pagehide', leave);
-    document.addEventListener('visibilitychange', sync);
+    window.addEventListener('pagehide', record);
+    document.addEventListener('visibilitychange', record);
     return () => {
       window.clearTimeout(timer); window.clearInterval(heartbeat);
-      window.removeEventListener('pagehide', leave);
-      document.removeEventListener('visibilitychange', sync);
+      window.removeEventListener('pagehide', record);
+      document.removeEventListener('visibilitychange', record);
     };
   }, [items, ready]);
 
