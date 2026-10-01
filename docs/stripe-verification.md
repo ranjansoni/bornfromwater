@@ -29,8 +29,18 @@
   its IP guard inside Stripe's hosted page. Stripe still requires Canadian
   shipping addresses. Browser-local storage can be manually edited, but a forged
   cart cannot bypass the checkout endpoint's country check.
-- Hosted preview verification: pending deployment of this change. Production and
-  the separately paused live-preview branch remain unchanged.
+- Code commit `2619f86` deployed successfully to the existing sandbox preview
+  (`dpl_5DqpCzp8EXsAvYj8MxEkzoVaULih`). Browser checks from the current Canadian
+  connection added New Beginnings, increased quantity to two (CA$130), reduced it
+  to one, and opened Stripe sandbox Checkout: CA$65 + CA$10 shipping, no tax,
+  CA$75 total and Canada as the only shipping country. No payment was submitted.
+  The unpaid Session is
+  `cs_test_a1zTKMTqoFbej3G4Jq7AhzPjQsTY1Yiuh4NXffeSVsLi4ePCdlKUgl0dv5`.
+  The test cart was cleared afterward; the pending order remains for audit.
+  Admin products loaded correctly after deployment. Foreign-country behavior was
+  tested with controlled request headers/rendering, not an overseas VPN.
+- Production and the separately paused live-preview branch remain unchanged.
+  Vercel geolocation reference: https://vercel.com/docs/headers/request-headers#x-vercel-ip-country
 
 ## Dynamic product catalogue — 2026-10-01
 
