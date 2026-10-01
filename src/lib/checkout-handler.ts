@@ -3,8 +3,9 @@ import { createPendingOrder, getOrderByCheckoutRequest } from "@/lib/order-store
 import { isUuid, signingSecret, validateCart } from "@/lib/orders";
 import { CheckoutExpiredError, checkoutDestination, statusPath } from "@/lib/stripe-checkout";
 import { stripeConfiguration } from "@/lib/stripe-config";
+import { trackCartCheckout } from '@/lib/cart-activity-handler';
 
-const defaults = { createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret };
+const defaults = { createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret, trackCartCheckout };
 const json = (body: object, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
 export async function handleCheckout(request: Request, deps = defaults) {
@@ -30,7 +31,11 @@ export async function handleCheckout(request: Request, deps = defaults) {
     }
     // A concurrent legacy request can win the unique checkout_request_id insert.
     if (order.paymentProvider === "godaddy") return json({ paymentPath: statusPath(order) });
-    return json({ paymentPath: await deps.checkoutDestination(order) });
+    const paymentPath = await deps.checkoutDestination(order);
+    // Cart reporting is best-effort; it cannot change the order or prevent payment.
+    try { if (deps.trackCartCheckout) await deps.trackCartCheckout(request, body.cartTracking, order); }
+    catch { /* The checkout remains valid if observation storage is unavailable. */ }
+    return json({ paymentPath });
   } catch (error) {
     if (error instanceof CheckoutExpiredError) {
       return json({ error: "This checkout has ended. You can start a new checkout.", code: "CHECKOUT_ENDED", checkoutId: body.checkoutId }, 409);

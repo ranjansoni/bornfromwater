@@ -138,6 +138,11 @@ export default function Care() {
         ))}
       </section>
 
+      <section id="cart-privacy" className="rule-b px-6 py-12 md:px-12">
+        <h2 className="text-[28px] font-extrabold tracking-[-0.02em]">Cart privacy</h2>
+        <p className="mt-4 max-w-[75ch] text-[14px] leading-[1.7] text-mid">Your basket is saved in this browser. We also record its items, quantities and recent activity using a random cart identifier to understand unfinished checkouts. This cart tracking does not collect your name, email address or contact permission, and does not send reminders. Once you start checkout, we link that cart to its checkout so completed purchases are excluded. The shop owner can view recent cart activity in a private portal. Cart observations older than 30 days are excluded and removed during subsequent cart activity. Clearing this browser&apos;s site data resets its cart identifier.</p>
+      </section>
+
       <section className="grid grid-cols-1 gap-12 px-6 py-13 md:grid-cols-[1fr_2fr] md:px-12">
         <h2 className="text-[32px] font-extrabold tracking-[-0.025em]">
           Questions

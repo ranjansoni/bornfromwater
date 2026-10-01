@@ -6,6 +6,7 @@ import { useState } from "react";
 import { cartKey, CHECKOUT_ATTEMPT_KEY, forgetAttempt, readAttempt } from "@/lib/checkout-attempt";
 import { useCart } from "@/components/CartProvider";
 import { cardImage, formatCad } from "@/lib/products";
+import { checkoutCartTracking } from '@/lib/cart-tracking-client';
 
 export function CartView({ checkout = false }: { checkout?: boolean }) {
   const { items, lines, totalCents, ready, setQuantity, removeItem } = useCart();
@@ -30,10 +31,11 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
         JSON.stringify({ cartKey: stored?.cartKey ?? cartKey(items), checkoutId }),
       );
 
+      const checkoutItems = stored ? JSON.parse(stored.cartKey) : items;
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: stored ? JSON.parse(stored.cartKey) : items, checkoutId }),
+        body: JSON.stringify({ items: checkoutItems, checkoutId, cartTracking: checkoutCartTracking(items, checkoutItems) }),
       });
       const result = (await response.json()) as { paymentPath?: string; error?: string; code?: string; checkoutId?: string };
       if (result.code === "CHECKOUT_ENDED" && result.checkoutId === checkoutId) setEndedAttempt(checkoutId);
@@ -135,6 +137,7 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
           <p className="mt-3 text-[13px] leading-[1.55] text-mid">
             Pay securely with Stripe. Shipping and any applicable tax are shown before you pay. All prices are in CAD.
           </p>
+          <p className="mt-3 text-[12px] leading-[1.55] text-mid">We record anonymous cart activity to understand unfinished checkouts. <Link href="/care#cart-privacy" className="underline">About cart privacy</Link></p>
           {error && (
             <p role="alert" className="mt-5 border-2 border-accent bg-accent-100 p-3 text-[13px]">
               {error}

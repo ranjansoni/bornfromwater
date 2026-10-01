@@ -37,7 +37,7 @@ export function AdminLogout() {
     } catch { setError('Could not sign out. Please try again.'); }
   }}>Sign out</button>{error && <p role="alert">{error}</p>}</div>;
 }
-export function AdminRefresh() {
+export function AdminRefresh({ label = 'Refresh orders' }: { label?: string }) {
   const router = useRouter();
-  return <button className="admin-button admin-secondary" onClick={() => router.refresh()}>Refresh orders ↻</button>;
+  return <button className="admin-button admin-secondary" onClick={() => router.refresh()}>{label} ↻</button>;
 }

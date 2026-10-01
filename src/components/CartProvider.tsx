@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { getProduct, type Product } from "@/lib/products";
+import { observeCart } from '@/lib/cart-tracking-client';
 
 const STORAGE_KEY = "born-from-water-cart-v1";
 const MAX_QUANTITY = 10;
@@ -76,8 +77,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (ready) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    if (ready) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch { /* Keep shopping available without browser storage. */ }
+    }
   }, [items, ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const sync = () => { if (document.visibilityState === 'visible') observeCart(items); };
+    const timer = window.setTimeout(sync, 400);
+    const heartbeat = items.length ? window.setInterval(sync, 5 * 60 * 1000) : undefined;
+    const leave = () => observeCart(items);
+    window.addEventListener('pagehide', leave);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      window.clearTimeout(timer); window.clearInterval(heartbeat);
+      window.removeEventListener('pagehide', leave);
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, [items, ready]);
+
+  useEffect(() => {
+    const changed = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY) return;
+      try { setItems(sanitizeItems(JSON.parse(event.newValue ?? '[]'))); } catch { /* Ignore malformed cross-tab storage. */ }
+    };
+    window.addEventListener('storage', changed);
+    return () => window.removeEventListener('storage', changed);
+  }, []);
 
   useEffect(() => {
     if (!notice) return;

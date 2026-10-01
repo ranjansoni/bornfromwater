@@ -7,6 +7,33 @@ delivery contact details, add a carrier, tracking number/link, and internal note
 Each successful save records an activity entry. Conflicting edits in another tab
 are rejected so they cannot silently overwrite one another.
 
+## Cart activity
+
+Open **Carts** in the owner navigation (`/admin/carts`). **Recent** shows observed
+carts active in the last 24 hours; **Potentially abandoned** shows carts inactive
+for at least 24 hours. Cards show items, quantities, merchandise subtotal, first
+and last activity, and a checkout link when one was started. Refresh to see updates.
+Empty carts and matching paid or processing checkouts are excluded, even if the
+shopper never returns from Stripe. A changed item selection can appear again.
+
+This first version is anonymous reporting: it does not collect contact details,
+email permission, or send reminders. Existing browser-only carts appear only if
+the shopper returns after this update. There is no cross-device identity or
+guarantee that an inactive cart is abandoned. Browser storage restrictions or
+failed requests can prevent observations; shopping and payment still work.
+Cart privacy is described on the cart and `/care#cart-privacy`.
+
+The view covers 30 days of activity. Expired observations and their cart links are
+pruned in batches on subsequent observation requests; there is no scheduled purge.
+Order records are never deleted by this cleanup. Tokens are random per browser
+cart and stored only as scoped HMAC hashes on the server. The public endpoint
+accepts validated catalogue items and returns no cart data. Admin access, account
+and sandbox/live separation remain enforced. No new credentials are needed.
+
+To test, add an item in the preview shop, then open **Carts → Recent** and refresh.
+Change its quantity and refresh again. Remove the item and confirm it disappears.
+An untouched cart moves to **Potentially abandoned** after 24 hours.
+
 ## Cancelling an order and refunding a payment
 
 Select **Cancelled**, add the cancellation reason to **Internal notes**, and
@@ -53,6 +80,11 @@ index. New databases can use `src/db/schema.sql` directly.
 Migration 003 expands the fulfillment status constraint and adds an activity-note
 snapshot, without modifying `orders` or existing operational records. Apply it
 before deploying cancellation support.
+
+Apply `src/db/migrations/004-cart-activity.sql` before deploying cart reporting.
+It adds `cart_activity`, `cart_checkout_links`, and `cart_activity_limits` without
+updating orders or fulfillment. It was applied only to `stripe-preview`; all 10
+orders retained checksum `0c9b72ff4e02baba98aaebccb6c97cd5` before and after.
 
 The migration was applied only to Neon `stripe-preview`
 (`br-mute-frost-axxyl0ob`). Before and after, the complete nine-row `orders` table

@@ -64,6 +64,18 @@ test('concurrent requests create one order and reuse frozen Session parameters',
   assert.equal(persisted.stripeSessionId, h.current.id);
   assert.equal(persisted.stripeAccountId, accountId);
 });
+test('cart reporting receives the saved checkout but cannot make a successful checkout fail', async () => {
+  const h = harness(); let observed;
+  h.checkoutDeps.trackCartCheckout = async (_request, tracking, order) => {
+    observed = { tracking, order }; throw new Error('Cart reporting unavailable');
+  };
+  const response = await handleCheckout(request({ items, checkoutId, cartTracking: { token: 'test-token', revision: 1 } }), h.checkoutDeps);
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).paymentPath, /^https:\/\/checkout.stripe.com/);
+  assert.equal(observed.tracking.token, 'test-token');
+  assert.equal(observed.order.checkoutRequestId, checkoutId);
+  assert.equal((await db.query('SELECT * FROM orders')).rows.length, 1);
+});
 test('catalogue and configuration changes cannot reprice an existing checkout', async () => {
   const h = harness(); const initial = await started(h);
   const response = await handleCheckout(request({ checkoutId, items: [{ slug: 'removed-product', quantity: 999, priceCents: 1 }] }), h.checkoutDeps);
