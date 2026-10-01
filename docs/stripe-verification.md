@@ -2,14 +2,14 @@
 
 ## Production launch preparation — 2026-10-01
 
-Current state: **not yet deployed**. The owner authorized public launch, production
+Current state: **configured and ready for the authorized main deployment**. The owner authorized public launch, production
 restricted credentials and a seven-day backup. Older preview-only statements in
 this report describe the historical verification stage, not the current scope.
 
 - Production is GitHub `main` at `6da4c4e`, deployed on Vercel project
   `born-from-water-test-schema`. It still serves the Etsy storefront. The migration
-  branch at `7ac6510` is a fast-forward descendant. Do not push `main` until the
-  missing live API key is configured and verified.
+  branch is a fast-forward descendant. Live credentials are now configured and
+  verified; the owner authorized the production main push.
 - Canonical public origin is `https://www.bornfromwater.ca`; the bare domain returns
   308 to it. Both HTTPS endpoints respond correctly.
 - Neon production is `br-small-queen-ax9251cn` in `sparkling-frost-11144338`, database
@@ -26,7 +26,8 @@ this report describe the historical verification stage, not the current scope.
   `STRIPE_SHIPPING_COUNTRIES=CA`, `STRIPE_SHIPPING_CENTS=1000`,
   `STRIPE_AUTOMATIC_TAX=false`, separate `ADMIN_PASSWORD_HASH` and
   `ADMIN_SESSION_SECRET`, and `STRIPE_WEBHOOK_SECRET`. Secrets are stored as Secret
-  variables. Existing `DATABASE_URL` remains unchanged. The existing
+  variables. Existing `DATABASE_URL` value remains unchanged, but its scope is now Production only;
+  the sandbox preview retains its isolated branch-specific database. The existing
   `ORDER_SIGNING_SECRET` was extended from Preview to Production and Preview,
   preserving its value. Sandbox branch-specific credentials remain untouched.
 - Live webhook `we_1ULrQtE2BkvcUrRY238eh8dy` is Active on account
@@ -35,11 +36,12 @@ this report describe the historical verification stage, not the current scope.
   `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
   `checkout.session.async_payment_failed`, `checkout.session.expired`.
   Delivery cannot pass until the new app is deployed; no deliveries have occurred.
-- Production restricted key creation is prepared for Accounts read and Checkout
-  Sessions, Products, Prices, Shipping Rates write. Stripe has emailed the owner
-  a verification link and the creation pop-up is waiting. No live API key exists
-  from this attempt yet. The owner must open that link in another tab of the same
-  Codex in-app browser. Keep the pop-up open and complete creation afterward.
+- Production restricted key **Born From Water — Production Checkout** was created
+  after owner email and authenticator verification and stored as Production-only
+  `STRIPE_SECRET_KEY`. It permits Accounts read and Checkout Sessions, Products,
+  Prices and Shipping Rates write. A read-only SDK check confirmed account
+  `acct_1UKmE8E2BkvcUrRY`, charges enabled, payouts enabled, details submitted,
+  empty currently/past-due requirements and no disabled reason.
 - Live-account **Successful payment receipt — Email** is enabled and persisted
   after reload in Communication preferences → Transactions and Balances.
 - Local credentials are in ignored, owner-only `.env.admin.production.local`
@@ -47,10 +49,9 @@ this report describe the historical verification stage, not the current scope.
   ignored `.env.launch.local`. Never commit or print these values.
 - Fresh pre-launch verification: all 102 tests, ESLint, TypeScript, and the webpack
   production build pass. No payment has been submitted.
-- Remaining: finish live key creation/storage, confirm live account readiness and
-  commit/push the authorized main deployment, verify
-  public catalogue/admin/live Checkout, and verify signed live webhook delivery
-  without charging a card (for example, expire an unpaid app-created Session).
+- Remaining: commit/push the authorized main deployment, verify public
+  catalogue/admin/live Checkout, and verify signed live webhook delivery without
+  charging a card (for example, expire an unpaid app-created Session).
 
 ## Canada-only purchasing — 2026-10-01
 
