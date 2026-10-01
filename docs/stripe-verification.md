@@ -1,15 +1,17 @@
 # Stripe migration verification — 2026-09-29
 
-## Production launch preparation — 2026-10-01
+## Production launch — 2026-10-01
 
-Current state: **configured and ready for the authorized main deployment**. The owner authorized public launch, production
+Current state: **live at https://www.bornfromwater.ca**. The owner authorized public launch, production
 restricted credentials and a seven-day backup. Older preview-only statements in
 this report describe the historical verification stage, not the current scope.
 
-- Production is GitHub `main` at `6da4c4e`, deployed on Vercel project
-  `born-from-water-test-schema`. It still serves the Etsy storefront. The migration
-  branch is a fast-forward descendant. Live credentials are now configured and
-  verified; the owner authorized the production main push.
+- Production release `d744ecf` was pushed to GitHub `main` after the owner’s
+  explicit public-deployment approval. Vercel deployment
+  `dpl_2hvgP3n63gt3BiixUxfJugrduirJ` is Ready on project
+  `born-from-water-test-schema` and the public domain. It replaces the Etsy-only
+  storefront with the tested Stripe/catalogue/admin implementation. A following
+  documentation-only commit records these verification results.
 - Canonical public origin is `https://www.bornfromwater.ca`; the bare domain returns
   308 to it. Both HTTPS endpoints respond correctly.
 - Neon production is `br-small-queen-ax9251cn` in `sparkling-frost-11144338`, database
@@ -35,7 +37,7 @@ this report describe the historical verification stage, not the current scope.
   snapshot payloads, API `2026-08-26.dahlia`, and exactly four events:
   `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
   `checkout.session.async_payment_failed`, `checkout.session.expired`.
-  Delivery cannot pass until the new app is deployed; no deliveries have occurred.
+  Signed live delivery was verified after deployment (details below).
 - Production restricted key **Born From Water — Production Checkout** was created
   after owner email and authenticator verification and stored as Production-only
   `STRIPE_SECRET_KEY`. It permits Accounts read and Checkout Sessions, Products,
@@ -45,13 +47,38 @@ this report describe the historical verification stage, not the current scope.
 - Live-account **Successful payment receipt — Email** is enabled and persisted
   after reload in Communication preferences → Transactions and Balances.
 - Local credentials are in ignored, owner-only `.env.admin.production.local`
-  and `admin-production-access.local.txt`; the captured webhook secret is in
-  ignored `.env.launch.local`. Never commit or print these values.
+  and `admin-production-access.local.txt`. The temporary `.env.launch.local`
+  used to verify the Stripe key was removed after secrets were saved to Vercel.
+  Never commit or print credential values.
 - Fresh pre-launch verification: all 102 tests, ESLint, TypeScript, and the webpack
   production build pass. No payment has been submitted.
-- Remaining: commit/push the authorized main deployment, verify public
-  catalogue/admin/live Checkout, and verify signed live webhook delivery without
-  charging a card (for example, expire an unpaid app-created Session).
+- Hosted verification: an unauthenticated `/admin` redirected to login; the
+  separate production owner password signed in successfully. `/admin/products`
+  lists all nine active products with their expected CAD prices. The public shop
+  displayed the same catalogue, allowed Add to cart from the Canadian connection,
+  and opened a **live**, unpaid hosted Checkout Session:
+  `cs_live_a1Lu5nqSNDxnlzEPTOLvRs7eWVURIpn78YhkSidnDNriJ78n6hGdQyWHBp`.
+  SDK and browser confirmed subtotal 6500, shipping 1000, tax 0, total 7500 CAD,
+  `automatic_tax=false`, shipping countries `[CA]`, and success/cancel URLs on
+  `https://www.bornfromwater.ca`.
+- Expired only that unpaid verification Session through Stripe’s API, without
+  providing payment information or submitting a charge. Its genuine live event
+  `evt_1ULrmzE2BkvcUrRYhTfLYw7l` delivered at 2:45 pm PDT with **HTTP 200** and
+  `{ "received": true }`. Neon recorded verification order
+  `0c3756c4-abb6-4a58-b240-0d85000b4e3d` as `expired`, live mode, correct live account.
+  This confirms signatures, routing, credentials and the production DB write.
+  The unpaid record remains for audit; the verification cart was cleared.
+- Final preservation query still reports all six GoDaddy historical orders and
+  original-field checksum `8d0b28f1f4d906715e7ca8f8c18063ab`. Sandbox orders and
+  credentials remain separate from production. Existing preview deployments are
+  immutable; the narrowed database environment scope applies to new deployments.
+- The owner’s live-account successful-payment email preference is enabled. Actual
+  email delivery and real-money paid-order creation were not exercised: no real
+  card was charged. Successful paid fulfillment and duplicate-event handling were
+  verified previously in the sandbox and remain covered by the 102 passing tests.
+  The owner can make a real purchase on the public shop; sandbox test cards only
+  work on the retained sandbox preview.
+
 
 ## Canada-only purchasing — 2026-10-01
 
