@@ -12,6 +12,14 @@
   matched for all 10 orders (`0c9b72ff4e02baba98aaebccb6c97cd5`), fulfillment records
   (`8b2c246403478c1ad2a83f95aaa6ec7e`), and existing activity fields
   (`b683bef68fa6f157465d6656fe8510cc`, excluding the new empty note column).
+- Commit `4b50839` deployed successfully to Preview as
+  `dpl_HqBWDeoACXWgWXhRRREYAth4xVGD`. Browser testing confirmed the required-reason
+  validation, saved cancellation after reload, queue/count changes, the cancelled
+  list and reopening with the cancellation reason retained in activity.
+- Test order `25e22760-0ed9-4de8-b5fc-94fcb201b921` was restored to **To pack**
+  with its temporary note cleared. The owner's separate shipping test was left
+  untouched. All 10 original order/payment rows still matched the checksum above
+  after these browser tests. No refund was requested or issued.
 
 ## Owner portal — 2026-09-30
 
