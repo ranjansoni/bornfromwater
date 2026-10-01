@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const signedIn = await isAdmin();
   return <div className="admin-shell">
     <header className="admin-header"><Link href="/admin/orders" className="admin-brand">BORN FROM WATER<span>SHOP OPERATIONS</span></Link>
-      <nav aria-label="Admin navigation">{signedIn && <><Link href="/admin/orders">Orders</Link><Link href="/admin/carts">Carts</Link></>}<Link href="/">View shop ↗</Link>{signedIn && <AdminLogout />}</nav></header>
+      <nav aria-label="Admin navigation">{signedIn && <><Link href="/admin/orders">Orders</Link><Link href="/admin/products">Products</Link><Link href="/admin/carts">Carts</Link></>}<Link href="/">View shop ↗</Link>{signedIn && <AdminLogout />}</nav></header>
     <main className="admin-main">{children}</main>
     <footer className="admin-footer">Born From Water · Vancouver, BC<span>All times Pacific</span></footer>
   </div>;

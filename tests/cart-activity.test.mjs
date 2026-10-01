@@ -9,7 +9,7 @@ import { createCartActivityStore } from '../src/lib/cart-activity-store.ts';
 import { handleCartActivity } from '../src/lib/cart-activity-handler.ts';
 import { createOrderStore } from '../src/lib/order-store.ts';
 import { validateCart } from '../src/lib/orders.ts';
-import { products } from '../src/lib/products.ts';
+import { products } from '../src/lib/catalog-seed.ts';
 import { config } from './fixtures.mjs';
 
 const db = new PGlite();
@@ -22,12 +22,12 @@ const secret = 'test-only-observation-signing-secret';
 const product = products.find(p => !p.placeholder);
 const items = [{ slug: product.slug, quantity: 1 }];
 const token = randomUUID();
-const snapshot = (revision = 1, cart = items, browserToken = token, scope = config) => cartSnapshot({ token: browserToken, revision, items: cart }, scope, secret);
+const snapshot = (revision = 1, cart = items, browserToken = token, scope = config) => cartSnapshot({ token: browserToken, revision, items: cart }, scope, secret, products);
 const storage = () => { const values = new Map(); return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }; };
 beforeEach(() => db.exec('TRUNCATE orders, cart_activity, cart_activity_limits CASCADE'));
 after(() => db.close());
 async function pending(scope = config) {
-  const cart = validateCart(items);
+  const cart = validateCart(items, products);
   return orders.createPendingOrder(cart.lines, cart.totalCents, randomUUID(), scope.livemode, scope.accountId);
 }
 test('cart migration is repeatable and leaves original orders unchanged', async () => {
@@ -47,14 +47,14 @@ test('browser identity rotates after an empty cart or expiry and storage failure
   assert.equal(checkoutCartTracking(items, [{ ...items[0], quantity: 2 }]), undefined);
 });
 test('cart identities are scoped and snapshots use only validated catalogue prices', () => {
-  const cart = cartSnapshot({ token, revision: 1, items: [{ ...items[0], unitPriceCents: 1 }], email: 'ignore@example.com' }, config, secret);
+  const cart = cartSnapshot({ token, revision: 1, items: [{ ...items[0], unitPriceCents: 1 }], email: 'ignore@example.com' }, config, secret, products);
   assert.equal(cart.subtotal, product.priceCents); assert.notEqual(cart.id, token);
   assert.notEqual(cart.id, trackingIdentity({ token, revision: 1 }, { ...config, livemode: true }, secret).id);
   assert.notEqual(cart.id, trackingIdentity({ token, revision: 1 }, { ...config, accountId: 'acct_other' }, secret).id);
   assert.equal(JSON.stringify(cart).includes('ignore@example.com'), false);
   for (const value of [{ token: 'bad', revision: 1, items }, { token, revision: -1, items }, { token, revision: 1.5, items },
     { token, revision: 1, items: [...items, ...items] }, { token, revision: 1, items: [{ ...items[0], quantity: 1000 }] }]) {
-    assert.throws(() => cartSnapshot(value, config, secret));
+    assert.throws(() => cartSnapshot(value, config, secret, products));
   }
 });
 test('older observations cannot resurrect a cleared cart or replace a newer snapshot', async () => {
@@ -114,7 +114,7 @@ test('retention prunes expired cart observations and links while preserving thei
   assert.deepEqual((await db.query('SELECT * FROM orders')).rows, before);
 });
 test('public observation route rejects cross-site, invalid and oversized input without leaking cart data', async () => {
-  const deps = { ...store, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret) };
+  const deps = { ...store, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret, products) };
   const request = (body, origin = config.origin) => new Request(`${config.origin}/api/cart-activity`, { method: 'POST',
     headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   assert.equal((await handleCartActivity(request({ token, revision: 1, items }, 'https://other.example'), deps)).status, 403);
@@ -129,7 +129,7 @@ test('public observation route rejects cross-site, invalid and oversized input w
 test('observation throttling is persistent and failures are generic', async () => {
   await store.allowObservation(config);
   await db.exec('UPDATE cart_activity_limits SET attempts = 10000');
-  const deps = { ...store, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret) };
+  const deps = { ...store, scope: () => config, snapshot: (value, scope) => cartSnapshot(value, scope, secret, products) };
   const request = () => new Request(`${config.origin}/api/cart-activity`, { method: 'POST', headers: { origin: config.origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ token, revision: 1, items }) });
   assert.equal((await handleCartActivity(request(), deps)).status, 429);
   await db.exec("UPDATE cart_activity_limits SET window_start = now() - interval '2 hours'");

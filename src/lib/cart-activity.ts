@@ -2,6 +2,7 @@ import 'server-only';
 import { createHmac } from 'node:crypto';
 import { isUuid, signingSecret, validateCart } from './orders';
 import { stripeConfiguration } from './stripe-config';
+import type { Product } from './products';
 import type { StoredCartLine } from './order-store';
 
 export type CartScope = { accountId: string; livemode: boolean; origin: string };
@@ -15,11 +16,11 @@ export function trackingIdentity(value: unknown, scope: CartScope, secret = sign
   const id = createHmac('sha256', secret).update(`cart-activity:v1:${scope.accountId}:${scope.livemode}:${v.token}`).digest('hex');
   return { id, revision: Number(v.revision) };
 }
-export function cartSnapshot(value: unknown, scope: CartScope, secret = signingSecret()): CartSnapshot {
+export function cartSnapshot(value: unknown, scope: CartScope, secret: string, products: Product[]): CartSnapshot {
   const v = value as { items?: unknown } | null;
   const identity = trackingIdentity(value, scope, secret);
   if (Array.isArray(v?.items) && v.items.length === 0) return { ...identity, items: [], subtotal: 0, fingerprint: '' };
-  const cart = validateCart(v?.items);
+  const cart = validateCart(v?.items, products);
   const items = cart.lines.map(({ product, quantity }) => ({ slug: product.slug, sku: product.sku,
     name: product.name, unitPriceCents: product.priceCents, quantity }));
   return { ...identity, items, subtotal: cart.totalCents, fingerprint: cartFingerprint(items) };

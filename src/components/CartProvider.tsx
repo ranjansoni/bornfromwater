@@ -10,7 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getProduct, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
+import { usePathname } from 'next/navigation';
 import { observeCart } from '@/lib/cart-tracking-client';
 
 const STORAGE_KEY = "born-from-water-cart-v1";
@@ -25,6 +26,9 @@ type CartContextValue = {
   itemCount: number;
   totalCents: number;
   ready: boolean;
+  unavailableItems: CartItem[];
+  getProduct: (slug: string) => Product | undefined;
+  refreshCatalog: () => Promise<void>;
   addItem: (slug: string) => void;
   setQuantity: (slug: string, quantity: number) => void;
   removeItem: (slug: string) => void;
@@ -47,7 +51,7 @@ function sanitizeItems(value: unknown): CartItem[] {
       !Number.isInteger(item.quantity) ||
       item.quantity < 1 ||
       item.quantity > MAX_QUANTITY ||
-      !getProduct(item.slug)
+      !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(item.slug)
     ) {
       return [];
     }
@@ -56,13 +60,30 @@ function sanitizeItems(value: unknown): CartItem[] {
   });
 }
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({ children, initialProducts }: { children: ReactNode; initialProducts: Product[] }) {
+  const [products, setProducts] = useState(initialProducts);
+  const path = usePathname();
+  const getProduct = useCallback((slug: string) => products.find(p => p.slug === slug), [products]);
+  const refreshCatalog = useCallback(async () => {
+    const response = await fetch('/api/catalog', { cache: 'no-store' });
+    if (!response.ok) throw new Error('Could not refresh the catalogue. Please reload and try again.');
+    const data = await response.json();
+    setProducts(data.products);
+  }, []);
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
   const [notice, setNotice] = useState<{
     productName: string;
     quantity: number;
   } | null>(null);
+
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void refreshCatalog().catch(() => {}); };
+    refresh();
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [path, refreshCatalog]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -114,7 +135,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback((slug: string) => {
     const product = getProduct(slug);
-    if (!product) return;
+    if (!product || !product.active || product.placeholder) return;
     const quantity = Math.min(
       MAX_QUANTITY,
       (items.find((item) => item.slug === slug)?.quantity ?? 0) + 1,
@@ -130,7 +151,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       );
     });
     setNotice({ productName: product.name, quantity });
-  }, [items]);
+  }, [items, getProduct]);
 
   const setQuantity = useCallback((slug: string, quantity: number) => {
     if (!Number.isInteger(quantity)) return;
@@ -156,13 +177,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CartContextValue>(() => {
     const lines = items.flatMap((item) => {
       const product = getProduct(item.slug);
-      return product ? [{ ...item, product }] : [];
+      return product?.active && !product.placeholder ? [{ ...item, product }] : [];
     });
 
     return {
       items,
       lines,
-      itemCount: lines.reduce((sum, line) => sum + line.quantity, 0),
+      unavailableItems: items.filter(item => !lines.some(line => line.slug === item.slug)),
+      getProduct,
+      refreshCatalog,
+      itemCount: items.reduce((sum, line) => sum + line.quantity, 0),
       totalCents: lines.reduce(
         (sum, line) => sum + line.product.priceCents * line.quantity,
         0,
@@ -173,7 +197,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       clearCart,
     };
-  }, [items, ready, addItem, setQuantity, removeItem, clearCart]);
+  }, [items, ready, addItem, setQuantity, removeItem, clearCart, getProduct, refreshCatalog]);
 
   return (
     <CartContext.Provider value={value}>

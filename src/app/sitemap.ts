@@ -1,9 +1,12 @@
+import { getPublicCatalog } from "@/lib/catalog-store";
+export const dynamic = "force-dynamic";
 import type { MetadataRoute } from "next";
-import { liveProducts, TIDE_LIVE } from "@/lib/products";
+import { TIDE_LIVE } from "@/lib/products";
 
 const BASE = "https://bornfromwater.ca";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const liveProducts = await getPublicCatalog();
   const staticRoutes = [
     "",
     "/about",

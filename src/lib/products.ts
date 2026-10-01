@@ -1,6 +1,3 @@
-import raw from "@/data/products.json";
-import images from "@/data/images.json";
-
 export type Collection = "signature" | "tide";
 
 export type ProductImage = {
@@ -26,6 +23,7 @@ export type Story = {
 
 export type Product = {
   slug: string;
+  active: boolean;
   name: string;
   collection: Collection;
   stone: string;
@@ -44,50 +42,12 @@ export type Product = {
   placeholder: boolean;
 };
 
-type RawProduct = Omit<Product, "images" | "placeholder" | "story"> & {
-  images: string[];
-  placeholder?: boolean;
-  story?: Story;
-};
 
-const imageMap = images as Record<
-  string,
-  { file: string; kind: "photo" | "graphic" }[]
->;
-
-export const products: Product[] = (raw as RawProduct[]).map((p) => ({
-  ...p,
-  placeholder: p.placeholder ?? false,
-  images: (imageMap[p.slug] ?? []).map((i) => ({
-    src: `/products/${p.slug}/${i.file}`,
-    kind: i.kind,
-  })),
-}));
-
-/** Tide is public with named placeholder listings until photography arrives. */
 export const TIDE_LIVE = true;
-
-/** Products safe to show in public listings. */
-export const liveProducts = products.filter(
-  (p) => TIDE_LIVE || p.collection !== "tide",
-);
-
-export function byCollection(collection: Collection | "all"): Product[] {
-  if (collection === "all") return liveProducts;
-  return liveProducts.filter((p) => p.collection === collection);
-}
-
-export function getProduct(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
-}
 
 /** The card image: first real photograph, never an info graphic. */
 export function cardImage(p: Product): ProductImage | undefined {
   return p.images.find((i) => i.kind === "photo") ?? p.images[0];
-}
-
-export function relatedProducts(current: Product, count = 3): Product[] {
-  return liveProducts.filter((p) => p.slug !== current.slug).slice(0, count);
 }
 
 export const collectionLabel: Record<Collection, string> = {
@@ -101,3 +61,6 @@ export function formatCad(cents: number): string {
     currency: "CAD",
   }).format(cents / 100);
 }
+
+/** Escape editable copy before embedding JSON in a script element. */
+export const productJsonLd = (value: unknown) => JSON.stringify(value).replace(/</g, "\\u003c");

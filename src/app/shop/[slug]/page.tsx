@@ -1,3 +1,4 @@
+import { getPublicCatalog } from "@/lib/catalog-store";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,23 +7,16 @@ import { AddToCartButton } from "@/components/AddToCartButton";
 import {
   cardImage,
   collectionLabel,
-  getProduct,
-  products,
-  relatedProducts,
+  productJsonLd,
   TIDE_LIVE,
 } from "@/lib/products";
 
 type Params = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return products
-    .filter((p) => TIDE_LIVE || p.collection !== "tide")
-    .map((p) => ({ slug: p.slug }));
-}
-
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const products = await getPublicCatalog();
+  const product = products.find(p => p.slug === slug);
   if (!product) return {};
 
   const img = cardImage(product);
@@ -40,13 +34,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Params) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const products = await getPublicCatalog();
+  const product = products.find(p => p.slug === slug);
 
   if (!product) notFound();
   if (product.collection === "tide" && !TIDE_LIVE) notFound();
 
   const [primary, ...rest] = product.images;
-  const related = relatedProducts(product);
+  const related = products.filter(p => p.slug !== slug).slice(0, 3);
 
   const specs = [
     { label: "Metal", value: "14k gold-filled" },
@@ -73,7 +68,7 @@ export default async function ProductPage({ params }: Params) {
       url: `https://bornfromwater.ca/shop/${product.slug}`,
       price: (product.priceCents / 100).toFixed(2),
       priceCurrency: "CAD",
-      availability: "https://schema.org/InStock",
+      availability: product.placeholder ? "https://schema.org/PreOrder" : "https://schema.org/InStock",
     },
   };
 
@@ -81,7 +76,7 @@ export default async function ProductPage({ params }: Params) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: productJsonLd(jsonLd) }}
       />
 
       <nav
@@ -259,4 +254,4 @@ export default async function ProductPage({ params }: Params) {
   );
 }
 
-export const dynamicParams = false;
+export const dynamic = "force-dynamic";

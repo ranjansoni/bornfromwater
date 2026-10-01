@@ -4,7 +4,7 @@ import { canDisplayPaymentCurrency, paymentCurrency, formatPaymentAmount } from 
 import { stripeConfiguration } from '../src/lib/stripe-config.ts';
 import { signOrderToken, verifyOrderToken, validateCart } from '../src/lib/orders.ts';
 import { cartKey, readAttempt, forgetAttempt, shouldClearPaidCart } from '../src/lib/checkout-attempt.ts';
-import { products } from '../src/lib/products.ts';
+import { products } from '../src/lib/catalog-seed.ts';
 import { checkoutId, orderId, accountId } from './fixtures.mjs';
 
 const env = { STRIPE_SECRET_KEY: 'sk_test_fixture', STRIPE_WEBHOOK_SECRET: 'whsec_fixture', STRIPE_ACCOUNT_ID: accountId };
@@ -31,8 +31,8 @@ test('signed order tokens reject tampering and malformed IDs', () => {
 });
 test('catalogue controls price; rejects duplicate, missing and invalid cart lines', () => {
   const product = products.find(p => !p.placeholder); const item = { slug: product.slug, quantity: 2, priceCents: 1 };
-  assert.equal(validateCart([item]).totalCents, product.priceCents * 2);
-  for (const items of [[], null, [item,item], [{ ...item, quantity: 11 }], [{ ...item, quantity: 1.5 }], [{ slug: 'missing', quantity: 1 }]]) assert.throws(() => validateCart(items));
+  assert.equal(validateCart([item], products).totalCents, product.priceCents * 2);
+  for (const items of [[], null, [item,item], [{ ...item, quantity: 11 }], [{ ...item, quantity: 1.5 }], [{ slug: 'missing', quantity: 1 }]]) assert.throws(() => validateCart(items, products));
 });
 test('legacy browser attempts retain identity and changed carts are never cleared', () => {
   const items = [{ slug: 'b', quantity: 1 }, { slug: 'a', quantity: 1 }];

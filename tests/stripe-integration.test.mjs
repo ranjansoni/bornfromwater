@@ -7,7 +7,7 @@ import { checkoutDestination, CheckoutExpiredError } from '../src/lib/stripe-che
 import { handleCheckout } from '../src/lib/checkout-handler.ts';
 import { handleStripeWebhook } from '../src/lib/stripe-webhook.ts';
 import { validateCart, verifyOrderToken } from '../src/lib/orders.ts';
-import { products } from '../src/lib/products.ts';
+import { products } from '../src/lib/catalog-seed.ts';
 import { checkoutId, accountId, config, sdk, secret, session, webhookRequest } from './fixtures.mjs';
 import { POST as retiredCharge } from '../src/app/api/checkout/charge/route.ts';
 
@@ -17,7 +17,7 @@ await db.exec(await readFile(new URL('../src/db/schema.sql', import.meta.url), '
 const store = createOrderStore({ query: async (sql, params) => (await db.query(sql, params)).rows });
 const product = products.find(p => !p.placeholder);
 const items = [{ slug: product.slug, quantity: 1 }];
-const cart = validateCart(items);
+const cart = validateCart(items, products);
 beforeEach(() => db.exec('TRUNCATE orders CASCADE'));
 after(() => db.close());
 
@@ -38,7 +38,7 @@ function harness() {
       retrieve: async () => current,
     } } };
   const deps = { ...store, stripeClient: () => stripe, stripeConfiguration: () => config, webhookSecret: () => secret };
-  const checkoutDeps = { ...deps, signingSecret: () => process.env.ORDER_SIGNING_SECRET,
+  const checkoutDeps = { ...deps, getCatalog: async () => products, signingSecret: () => process.env.ORDER_SIGNING_SECRET,
     checkoutDestination: order => checkoutDestination(order, deps) };
   return { deps, checkoutDeps, stripe, requests, get current() { return current; }, set current(v) { current = v; } };
 }

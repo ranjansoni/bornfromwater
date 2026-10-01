@@ -9,7 +9,7 @@ import { cardImage, formatCad } from "@/lib/products";
 import { checkoutCartTracking } from '@/lib/cart-tracking-client';
 
 export function CartView({ checkout = false }: { checkout?: boolean }) {
-  const { items, lines, totalCents, ready, setQuantity, removeItem } = useCart();
+  const { items, lines, totalCents, ready, setQuantity, removeItem, unavailableItems, refreshCatalog } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [endedAttempt, setEndedAttempt] = useState<string | null>(null);
@@ -35,9 +35,15 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: checkoutItems, checkoutId, cartTracking: checkoutCartTracking(items, checkoutItems) }),
+        body: JSON.stringify({ items: checkoutItems, checkoutId,
+          expectedPrices: Object.fromEntries(lines.map(line => [line.slug, line.product.priceCents])),
+          cartTracking: checkoutCartTracking(items, checkoutItems) }),
       });
       const result = (await response.json()) as { paymentPath?: string; error?: string; code?: string; checkoutId?: string };
+      if (result.code === 'CATALOG_CHANGED') {
+        forgetAttempt(sessionStorage, checkoutId);
+        await refreshCatalog();
+      }
       if (result.code === "CHECKOUT_ENDED" && result.checkoutId === checkoutId) setEndedAttempt(checkoutId);
       if (!response.ok || !result.paymentPath) {
         throw new Error(result.error ?? "Checkout could not be started.");
@@ -53,7 +59,7 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
     return <p className="px-6 py-16 text-mid md:px-12">Loading your cart…</p>;
   }
 
-  if (lines.length === 0) {
+  if (lines.length === 0 && unavailableItems.length === 0) {
     return (
       <section className="px-6 py-16 md:px-12">
         <h1 className="text-[38px] font-extrabold tracking-[-0.03em]">Your cart is empty.</h1>
@@ -78,6 +84,10 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_360px]">
         <div className="rule-t">
+          {unavailableItems.map(item => <div key={item.slug} className="rule-b py-5">
+            <p className="text-[14px]">{item.slug.replace(/-/g, ' ')} is no longer available. Remove it to continue.</p>
+            <button type="button" onClick={() => removeItem(item.slug)} className="mt-3 text-[12px] text-accent-700 underline">Remove unavailable item</button>
+          </div>)}
           {lines.map(({ product, quantity }) => {
             const image = cardImage(product);
             return (
@@ -163,7 +173,7 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
             <button
               type="button"
               onClick={() => beginPayment()}
-              disabled={submitting}
+              disabled={submitting || unavailableItems.length > 0}
               className="mt-6 w-full bg-accent px-5 py-[14px] text-left text-[13px] font-extrabold tracking-[0.1em] text-sand uppercase hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
             >
               {submitting ? "Preparing secure payment…" : "Continue to payment"}

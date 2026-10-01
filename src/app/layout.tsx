@@ -3,6 +3,8 @@ import { Archivo } from "next/font/google";
 import { StoreAnalytics } from "@/components/StoreAnalytics";
 import { StoreShell } from "@/components/StoreShell";
 import "./globals.css";
+import { getPublicCatalog } from "@/lib/catalog-store";
+export const dynamic = "force-dynamic";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -29,13 +31,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const products = await getPublicCatalog();
   return (
     <html lang="en-CA" className={archivo.variable}>
       <body>
-        <StoreShell>{children}</StoreShell>
+        <StoreShell products={products}>{children}</StoreShell>
       </body>
       <StoreAnalytics />
     </html>

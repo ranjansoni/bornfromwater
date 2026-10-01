@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ProductGrid } from "@/components/ProductGrid";
-import { byCollection } from "@/lib/products";
+import { getPublicCatalog } from "@/lib/catalog-store";
 
 export const metadata: Metadata = {
   title: "Signature Collection",
@@ -8,12 +8,13 @@ export const metadata: Metadata = {
     "The founding line. Single-stone and paired bracelets on 14k gold-filled, chosen for meaning as much as colour.",
 };
 
-export default function SignatureCollection() {
+export default async function SignatureCollection() {
+  const products = (await getPublicCatalog()).filter(p => p.collection === "signature");
   return (
     <>
       <section className="rule-b px-6 pt-16 pb-11 md:px-12">
         <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-          Collection 01 · Six pieces
+          Collection 01 · {products.length} pieces
         </p>
         <h1 className="mt-4 max-w-[14ch] text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[70px]">
           Signature
@@ -25,7 +26,7 @@ export default function SignatureCollection() {
       </section>
 
       <ProductGrid
-        products={byCollection("signature")}
+        products={products}
         heading="The pieces"
       />
     </>

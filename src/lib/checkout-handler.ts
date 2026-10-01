@@ -3,9 +3,10 @@ import { createPendingOrder, getOrderByCheckoutRequest } from "@/lib/order-store
 import { isUuid, signingSecret, validateCart } from "@/lib/orders";
 import { CheckoutExpiredError, checkoutDestination, statusPath } from "@/lib/stripe-checkout";
 import { stripeConfiguration } from "@/lib/stripe-config";
+import { catalog } from './catalog-store';
 import { trackCartCheckout } from '@/lib/cart-activity-handler';
 
-const defaults = { createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret, trackCartCheckout };
+const defaults = { getCatalog: catalog.list, createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret, trackCartCheckout };
 const json = (body: object, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
 export async function handleCheckout(request: Request, deps = defaults) {
@@ -25,8 +26,12 @@ export async function handleCheckout(request: Request, deps = defaults) {
     deps.signingSecret();
     if (!order) {
       let cart;
-      try { cart = validateCart(body.items); }
-      catch { return json({ error: "Please check your cart. An item or quantity is unavailable." }, 400); }
+      const products = await deps.getCatalog();
+      try { cart = validateCart(body.items, products); }
+      catch { return json({ error: "Please check your cart. An item or quantity is unavailable.", code: "CATALOG_CHANGED" }, 400); }
+      if (body.expectedPrices && cart.lines.some(({ product }) => body.expectedPrices[product.slug] !== product.priceCents)) {
+        return json({ error: "A price changed. Please review your updated cart before continuing.", code: "CATALOG_CHANGED" }, 409);
+      }
       order = await deps.createPendingOrder(cart.lines, cart.totalCents, body.checkoutId, config.livemode, config.accountId);
     }
     // A concurrent legacy request can win the unique checkout_request_id insert.

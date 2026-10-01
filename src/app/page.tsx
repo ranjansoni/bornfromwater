@@ -1,8 +1,9 @@
+import { getPublicCatalog } from "@/lib/catalog-store";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/Button";
 import { ProductGrid } from "@/components/ProductGrid";
-import { liveProducts, TIDE_LIVE } from "@/lib/products";
+import { TIDE_LIVE } from "@/lib/products";
 
 const stats = [
   { n: "14k", label: "Gold-filled" },
@@ -41,7 +42,8 @@ const reviews = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const liveProducts = await getPublicCatalog();
   return (
     <>
       <section className="horizon-hero rule-b relative max-h-[720px] min-h-[220px] w-full overflow-hidden aspect-video">

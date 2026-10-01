@@ -1,8 +1,10 @@
 import 'server-only';
 import { cartFingerprint, cartScope, cartSnapshot, trackingIdentity, validCartOrigin } from './cart-activity';
 import { cartActivity } from './cart-activity-store';
+import { catalog } from './catalog-store';
+import { signingSecret } from './orders';
 import type { StoredOrder } from './order-store';
-const defaults = { scope: cartScope, ...cartActivity, snapshot: cartSnapshot };
+const defaults = { scope: cartScope, ...cartActivity, snapshot: async (value: unknown, scope: ReturnType<typeof cartScope>) => cartSnapshot(value, scope, signingSecret(), await catalog.list()) };
 const json = (status: number) => Response.json({ ok: status === 200 }, { status,
   headers: { 'Cache-Control': 'private, no-store', 'X-Robots-Tag': 'noindex, nofollow' } });
 export async function handleCartActivity(request: Request, deps = defaults) {
@@ -14,7 +16,7 @@ export async function handleCartActivity(request: Request, deps = defaults) {
     try {
       const raw = await request.text();
       if (raw.length > 12000) return json(400);
-      snapshot = deps.snapshot(JSON.parse(raw), scope);
+      snapshot = await deps.snapshot(JSON.parse(raw), scope);
     } catch { return json(400); }
     if (!await deps.allowObservation(scope)) return json(429);
     await deps.observe(snapshot, scope);

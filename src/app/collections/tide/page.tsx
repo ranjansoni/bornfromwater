@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ProductGrid } from "@/components/ProductGrid";
-import { byCollection } from "@/lib/products";
+import { getPublicCatalog } from "@/lib/catalog-store";
 
 export const metadata: Metadata = {
   title: "Tide Collection",
@@ -8,12 +8,13 @@ export const metadata: Metadata = {
     "Three gemstone bracelets inspired by the movement and colour of the sea: Peridot Tide, Aquamarine Tide, and Amethyst Tide.",
 };
 
-export default function TideCollection() {
+export default async function TideCollection() {
+  const products = (await getPublicCatalog()).filter(p => p.collection === "tide");
   return (
     <>
       <section className="rule-b px-6 pt-16 pb-11 md:px-12">
         <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-          Collection 02 · Three pieces
+          Collection 02 · {products.length} pieces
         </p>
         <h1 className="mt-4 max-w-[14ch] text-[44px] leading-none font-extrabold tracking-[-0.035em] md:text-[70px]">
           Tide
@@ -24,7 +25,7 @@ export default function TideCollection() {
         </p>
       </section>
 
-      <ProductGrid products={byCollection("tide")} heading="The pieces" />
+      <ProductGrid products={products} heading="The pieces" />
     </>
   );
 }

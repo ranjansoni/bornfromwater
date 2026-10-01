@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createHash } from "node:crypto";
-import { getProduct, type Product } from "@/lib/products";
+import { type Product } from "@/lib/products";
 
 export type SubmittedCartItem = { slug: string; quantity: number };
 export type ValidatedCartLine = {
@@ -18,7 +18,7 @@ export type OrderToken = {
 const MAX_LINES = 20;
 const MAX_QUANTITY = 10;
 
-export function validateCart(items: unknown): {
+export function validateCart(items: unknown, products: Product[]): {
   lines: ValidatedCartLine[];
   totalCents: number;
   fingerprint: string;
@@ -44,8 +44,8 @@ export function validateCart(items: unknown): {
       throw new Error("The cart contains an invalid item.");
     }
 
-    const product = getProduct(item.slug);
-    if (!product || product.placeholder) {
+    const product = products.find(p => p.slug === item.slug);
+    if (!product || !product.active || product.placeholder) {
       throw new Error("A cart item is no longer available.");
     }
     seen.add(item.slug);
