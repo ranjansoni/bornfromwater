@@ -201,7 +201,23 @@ Only after those checks: confirm countries, shipping fee, tax behavior, inventor
 and fulfillment policy; obtain explicit live/deployment authorization; configure
 live account/key and webhook, HTTPS `APP_URL`, explicit shipping/tax values and
 `STRIPE_ALLOW_LIVE=true`; deploy and verify the real production webhook. Live keys
-are rejected on Vercel preview/development. Keep sandbox and live databases separate.
+remain rejected on Vercel development and on ordinary preview branches.
+
+The owner authorized real payments on a separate Vercel Preview on 2026-10-01,
+without a production launch. The `codex/stripe-live-preview` branch additionally
+requires `STRIPE_ALLOW_LIVE_PREVIEW=true` and
+`STRIPE_LIVE_PREVIEW_BRANCH=codex/stripe-live-preview`, exactly matching Vercel's
+`VERCEL_GIT_COMMIT_REF`. Set these only in branch-specific Preview variables.
+Use live account `acct_1UKmE8E2BkvcUrRY`, its own restricted key and live webhook,
+and an isolated database copied from production so historical orders are preserved.
+Keep Canada-only CA$10 shipping and tax off. Checkout and the owner portal identify
+the preview as using real payments. Keep the working sandbox branch and database.
+
+Real orders placed on this preview must be retained at production cutover. Before
+that separately authorized launch, reconcile any new GoDaddy production orders
+created since the database copy. Never replace the live preview database with a
+fresh copy or discard its paid orders. This preview authorization does not permit
+merging to main, promoting a deployment, or changing the public production domain.
 
 Current verification results and outstanding connection work are recorded in
 `stripe-verification.md`.

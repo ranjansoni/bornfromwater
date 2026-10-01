@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canDisplayPaymentCurrency, paymentCurrency, formatPaymentAmount } from '../src/lib/payment-currency.ts';
-import { stripeConfiguration } from '../src/lib/stripe-config.ts';
+import { stripeConfiguration, isLivePaymentPreview } from '../src/lib/stripe-config.ts';
 import { signOrderToken, verifyOrderToken, validateCart } from '../src/lib/orders.ts';
 import { cartKey, readAttempt, forgetAttempt, shouldClearPaidCart } from '../src/lib/checkout-attempt.ts';
 import { products } from '../src/lib/products.ts';
@@ -24,6 +24,21 @@ test('sandbox defaults are explicit; live mode is opt-in', () => {
 for (const patch of [{ STRIPE_WEBHOOK_SECRET: '' }, { STRIPE_ACCOUNT_ID: '' }, { STRIPE_SECRET_KEY: 'bad' }, { APP_URL: 'https://user:pass@example.com' }, { APP_URL: 'http://example.com' }, { APP_URL: 'https://example.com/path' }, { STRIPE_SHIPPING_CENTS: '-1' }, { STRIPE_AUTOMATIC_TAX: 'yes' }]) {
   test(`rejects invalid config ${JSON.stringify(patch)}`, () => assert.throws(() => stripeConfiguration({ ...env, ...patch })));
 }
+test('live preview is opt-in and pinned to a single Git branch', () => {
+  const live = { ...env, STRIPE_SECRET_KEY: 'rk_live_fixture', STRIPE_ALLOW_LIVE: 'true',
+    APP_URL: 'https://live-preview.example.com', STRIPE_SHIPPING_COUNTRIES: 'CA',
+    STRIPE_SHIPPING_CENTS: '1000', STRIPE_AUTOMATIC_TAX: 'false', VERCEL_ENV: 'preview',
+    STRIPE_ALLOW_LIVE_PREVIEW: 'true', STRIPE_LIVE_PREVIEW_BRANCH: 'codex/stripe-live-preview',
+    VERCEL_GIT_COMMIT_REF: 'codex/stripe-live-preview' };
+  assert.equal(stripeConfiguration(live).livemode, true);
+  assert.equal(isLivePaymentPreview(live), true);
+  for (const patch of [{ STRIPE_ALLOW_LIVE: 'false' }, { STRIPE_ALLOW_LIVE_PREVIEW: undefined },
+    { STRIPE_LIVE_PREVIEW_BRANCH: undefined }, { STRIPE_LIVE_PREVIEW_BRANCH: ' ' },
+    { VERCEL_GIT_COMMIT_REF: undefined }, { VERCEL_GIT_COMMIT_REF: 'codex/stripe-migration' },
+    { VERCEL_ENV: 'development' }]) assert.throws(() => stripeConfiguration({ ...live, ...patch }));
+  assert.equal(isLivePaymentPreview({ ...live, VERCEL_ENV: 'production' }), false);
+  assert.equal(isLivePaymentPreview({ ...live, STRIPE_SECRET_KEY: 'rk_test_fixture' }), false);
+});
 test('signed order tokens reject tampering and malformed IDs', () => {
   const identity = { version: 1, orderId, checkoutRequestId: checkoutId }; const token = signOrderToken(identity);
   assert.deepEqual(verifyOrderToken(token), identity); assert.equal(verifyOrderToken(token + 'x'), null);

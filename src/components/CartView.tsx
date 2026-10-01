@@ -8,7 +8,7 @@ import { useCart } from "@/components/CartProvider";
 import { cardImage, formatCad } from "@/lib/products";
 import { checkoutCartTracking } from '@/lib/cart-tracking-client';
 
-export function CartView({ checkout = false }: { checkout?: boolean }) {
+export function CartView({ checkout = false, livePreview = false }: { checkout?: boolean; livePreview?: boolean }) {
   const { items, lines, totalCents, ready, setQuantity, removeItem } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -130,6 +130,9 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
         </div>
 
         <aside className="h-fit border-2 border-divider p-6">
+          {livePreview && <p className="mb-5 border-2 border-accent bg-accent-100 p-3 text-[13px]">
+            Live payment preview. Completing payment will charge your card real money.
+          </p>}
           <div className="flex justify-between gap-4 text-[18px] font-extrabold">
             <span>Subtotal</span>
             <span>{formatCad(totalCents)} CAD</span>

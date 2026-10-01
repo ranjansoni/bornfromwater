@@ -17,7 +17,7 @@
 .admin-button:disabled { opacity:.6; cursor:wait; }
 .admin-secondary { background:transparent; color:var(--color-ink); border-color:var(--color-divider); }
 .admin-secondary:hover { background:var(--color-surface); }
-.admin-sandbox { background:#f7dfc3; border-left:3px solid var(--color-sun); padding:12px 16px; font-size:13px; margin:0 0 28px; }
+.admin-sandbox, .admin-notice { background:#f7dfc3; border-left:3px solid var(--color-sun); padding:12px 16px; font-size:13px; margin:0 0 28px; }
 .admin-stats { display:grid; grid-template-columns:repeat(5,1fr); border:1px solid var(--color-divider); margin-bottom:32px; }
 .admin-stats a { padding:18px 22px; border-right:1px solid var(--color-divider); }
 .admin-stats a:last-child { border-right:0; }

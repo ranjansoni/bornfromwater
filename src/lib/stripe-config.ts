@@ -1,3 +1,7 @@
+export function isLivePaymentPreview(env: NodeJS.ProcessEnv = process.env) {
+  return env.VERCEL_ENV === "preview" && /^(sk|rk)_live_/.test(env.STRIPE_SECRET_KEY ?? "");
+}
+
 export function stripeConfiguration(env: NodeJS.ProcessEnv = process.env) {
   const secretKey = env.STRIPE_SECRET_KEY ?? "";
   if (!/^(sk|rk)_(test|live)_\S+$/.test(secretKey)) {
@@ -15,7 +19,13 @@ export function stripeConfiguration(env: NodeJS.ProcessEnv = process.env) {
     throw new Error("Live checkout has not been enabled.");
   }
   if (livemode && env.VERCEL_ENV && env.VERCEL_ENV !== "production") {
-    throw new Error("Live Stripe keys cannot be used in a preview or development deployment.");
+    const approvedPreview = env.VERCEL_ENV === "preview" &&
+      env.STRIPE_ALLOW_LIVE_PREVIEW === "true" &&
+      Boolean(env.STRIPE_LIVE_PREVIEW_BRANCH?.trim()) &&
+      env.STRIPE_LIVE_PREVIEW_BRANCH === env.VERCEL_GIT_COMMIT_REF;
+    if (!approvedPreview) {
+      throw new Error("Live preview requires explicit approval for this Git branch; development is not allowed.");
+    }
   }
   const origin = new URL(env.APP_URL ?? "http://localhost:3000");
   if (origin.username || origin.password || origin.search || origin.hash || origin.pathname !== "/" ||
