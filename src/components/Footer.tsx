@@ -17,7 +17,7 @@ export function Footer() {
         </div>
         <a
           href="mailto:bornfromwatercanada@gmail.com"
-          className="border-2 border-sun bg-sun px-5 py-3 text-[13px] font-extrabold tracking-[0.08em] text-deep uppercase transition-colors hover:bg-transparent hover:text-sun"
+          className="max-w-full break-all border-2 border-sun bg-sun px-5 py-3 text-[13px] font-extrabold tracking-[0.08em] text-deep uppercase transition-colors hover:bg-transparent hover:text-sun"
         >
           bornfromwatercanada@gmail.com
         </a>
