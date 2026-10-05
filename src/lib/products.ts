@@ -9,7 +9,7 @@ export type ProductImage = {
 
 /**
  * The piece's own story — why it exists and how it is meant to be worn.
- * Sits between the name and the price, and stands in for `description` on the
+ * Follows the purchase information and stands in for `description` on the
  * page. `description` is still the source for metadata and JSON-LD.
  *
  * This copy is written for the brand, not taken from the owner's Etsy words

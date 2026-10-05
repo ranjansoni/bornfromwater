@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canDisplayPaymentCurrency, paymentCurrency, formatPaymentAmount } from '../src/lib/payment-currency.ts';
 import { stripeConfiguration } from '../src/lib/stripe-config.ts';
+import { shippingConfiguration } from '../src/lib/shipping-config.ts';
 import { signOrderToken, verifyOrderToken, validateCart } from '../src/lib/orders.ts';
 import { cartKey, readAttempt, forgetAttempt, shouldClearPaidCart } from '../src/lib/checkout-attempt.ts';
 import { products } from '../src/lib/catalog-seed.ts';
@@ -20,6 +21,19 @@ test('sandbox defaults are explicit; live mode is opt-in', () => {
   const live = { ...env, STRIPE_SECRET_KEY: 'sk_live_fixture', STRIPE_ALLOW_LIVE: 'true', APP_URL: 'https://bornfromwater.ca', STRIPE_SHIPPING_COUNTRIES: 'CA', STRIPE_SHIPPING_CENTS: '500', STRIPE_AUTOMATIC_TAX: 'false' };
   assert.equal(stripeConfiguration(live).livemode, true);
   assert.throws(() => stripeConfiguration({ ...live, VERCEL_ENV: 'preview' }));
+});
+test('storefront delivery settings match Checkout without exposing payment credentials', () => {
+  for (const shippingCents of [0, 1000, 1250]) {
+    for (const automaticTax of [false, true]) {
+      const settings = { STRIPE_SHIPPING_COUNTRIES: 'CA', STRIPE_SHIPPING_CENTS: String(shippingCents), STRIPE_AUTOMATIC_TAX: String(automaticTax) };
+      const displayed = shippingConfiguration(settings);
+      assert.deepEqual(displayed, { countries: ['CA'], shippingCents, automaticTax });
+      const checkout = stripeConfiguration({ ...env, ...settings });
+      assert.equal(checkout.shippingCents, displayed.shippingCents);
+      assert.equal(checkout.automaticTax, displayed.automaticTax);
+      assert.deepEqual(shippingConfiguration({ ...env, ...settings }), displayed);
+    }
+  }
 });
 for (const patch of [{ STRIPE_WEBHOOK_SECRET: '' }, { STRIPE_ACCOUNT_ID: '' }, { STRIPE_SECRET_KEY: 'bad' }, { APP_URL: 'https://user:pass@example.com' }, { APP_URL: 'http://example.com' }, { APP_URL: 'https://example.com/path' }, { STRIPE_SHIPPING_CENTS: '-1' }, { STRIPE_AUTOMATIC_TAX: 'yes' }]) {
   test(`rejects invalid config ${JSON.stringify(patch)}`, () => assert.throws(() => stripeConfiguration({ ...env, ...patch })));

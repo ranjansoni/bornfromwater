@@ -1,3 +1,5 @@
+import { shippingConfiguration } from './shipping-config';
+
 export function stripeConfiguration(env: NodeJS.ProcessEnv = process.env) {
   const secretKey = env.STRIPE_SECRET_KEY ?? "";
   if (!/^(sk|rk)_(test|live)_\S+$/.test(secretKey)) {
@@ -29,15 +31,6 @@ export function stripeConfiguration(env: NodeJS.ProcessEnv = process.env) {
     env.STRIPE_SHIPPING_CENTS === "" || !env.STRIPE_AUTOMATIC_TAX)) {
     throw new Error("Configure shipping countries, shipping cents and tax before live checkout.");
   }
-  const countries = (env.STRIPE_SHIPPING_COUNTRIES || "CA").split(",").map((v) => v.trim().toUpperCase());
-  const shippingValue = env.STRIPE_SHIPPING_CENTS || "0";
-  const shippingCents = Number(shippingValue);
-  const tax = env.STRIPE_AUTOMATIC_TAX || "false";
-  if (countries.length > 50 || countries.some((v) => !/^[A-Z]{2}$/.test(v)) ||
-    !/^\d+$/.test(shippingValue) || !Number.isSafeInteger(shippingCents) ||
-    shippingCents < 0 || shippingCents > 100000 || !["true", "false"].includes(tax)) {
-    throw new Error("Invalid Stripe shipping or tax configuration.");
-  }
-  return { secretKey, accountId, livemode, origin: origin.origin, countries: [...new Set(countries)],
-    shippingCents, automaticTax: tax === "true" };
+  return { secretKey, accountId, livemode, origin: origin.origin,
+    ...shippingConfiguration(env) };
 }

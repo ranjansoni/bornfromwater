@@ -8,7 +8,10 @@ import { useCart } from "@/components/CartProvider";
 import { cardImage, formatCad } from "@/lib/products";
 import { checkoutCartTracking } from '@/lib/cart-tracking-client';
 
-export function CartView({ checkout = false }: { checkout?: boolean }) {
+export function CartView({ checkout = false, shipping }: {
+  checkout?: boolean;
+  shipping: { shippingCents: number; automaticTax: boolean };
+}) {
   const { items, lines, totalCents, ready, setQuantity, removeItem, unavailableItems, refreshCatalog, purchaseEligibility } = useCart();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -142,12 +145,24 @@ export function CartView({ checkout = false }: { checkout?: boolean }) {
         </div>
 
         <aside className="h-fit border-2 border-divider p-6">
-          <div className="flex justify-between gap-4 text-[18px] font-extrabold">
-            <span>Subtotal</span>
-            <span>{formatCad(totalCents)} CAD</span>
-          </div>
+          <dl className="space-y-3 text-[14px]">
+            <div className="flex justify-between gap-4">
+              <dt>Subtotal</dt>
+              <dd>{formatCad(totalCents)} CAD</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt>Flat shipping · Canada</dt>
+              <dd className="shrink-0">{formatCad(shipping.shippingCents)} CAD</dd>
+            </div>
+            <div className="rule-t flex justify-between gap-4 pt-4 text-[18px] font-extrabold">
+              <dt>Estimated total</dt>
+              <dd className="shrink-0">{formatCad(totalCents + shipping.shippingCents)} CAD</dd>
+            </div>
+          </dl>
           <p className="mt-3 text-[13px] leading-[1.55] text-mid">
-            Pay securely with Stripe. Shipping and any applicable tax are shown before you pay. All prices are in CAD.
+            One shipping fee per order, within Canada only. All prices are in CAD.
+            {shipping.automaticTax && " Any applicable tax is calculated at payment."}
+            {" Pay securely with Stripe; your final total is confirmed before you pay."}
           </p>
           <p className="mt-3 text-[12px] leading-[1.55] text-mid">We record anonymous cart activity to understand unfinished checkouts. <Link href="/care#cart-privacy" className="underline">About cart privacy</Link></p>
           {error && (

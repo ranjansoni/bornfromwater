@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { shippingConfiguration } from "@/lib/shipping-config";
 import {
   cardImage,
   collectionLabel,
+  formatCad,
   productJsonLd,
   TIDE_LIVE,
 } from "@/lib/products";
@@ -42,6 +44,7 @@ export default async function ProductPage({ params }: Params) {
 
   const [primary, ...rest] = product.images;
   const related = products.filter(p => p.slug !== slug).slice(0, 3);
+  const { shippingCents, automaticTax } = shippingConfiguration();
 
   const specs = [
     { label: "Metal", value: "14k gold-filled" },
@@ -151,8 +154,27 @@ export default async function ProductPage({ params }: Params) {
           <h1 className="max-w-[20ch] text-[34px] leading-[1.05] font-extrabold tracking-[-0.03em] md:text-[44px]">
             {product.name}
           </h1>
-          {/* The story leads — why the piece exists — before any spec detail.
-              It stands in for `description`, which still feeds metadata. */}
+          <div className="w-full">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <p className="text-[24px] font-extrabold">{formatCad(product.priceCents)} CAD</p>
+              {product.placeholder ? (
+                <p className="border-2 border-divider bg-surface px-5 py-[14px] text-[13px] font-extrabold tracking-[0.08em] uppercase">
+                  Available soon
+                </p>
+              ) : (
+                <AddToCartButton slug={product.slug} />
+              )}
+            </div>
+            <p className="mt-4 text-[14px] font-bold">
+              {formatCad(shippingCents)} CAD flat shipping within Canada.
+            </p>
+            <p className="mt-1 text-[13px] leading-[1.6] text-mid">
+              One shipping fee per order. Ships from Vancouver, BC.
+              {automaticTax && " Any applicable tax is calculated at payment."}
+              {" Secure payment with Stripe."}
+            </p>
+          </div>
+          {/* Product story and details follow the purchase information. */}
           {product.story ? (
             <div className="rule-t w-full pt-5">
               <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
@@ -194,21 +216,6 @@ export default async function ProductPage({ params }: Params) {
             ))}
           </dl>
 
-          <div className="w-full">
-            {product.placeholder ? (
-              <p className="border-2 border-divider bg-surface px-5 py-[14px] text-[13px] font-extrabold tracking-[0.08em] uppercase">
-                Available soon
-              </p>
-            ) : (
-              <>
-                <AddToCartButton slug={product.slug} />
-                <p className="mt-3 text-[13px] text-mid">
-                  Secure payment is processed by Stripe.
-                </p>
-              </>
-            )}
-          </div>
-
           <div className="rule-t w-full pt-5">
             <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
               The stone
@@ -244,6 +251,7 @@ export default async function ProductPage({ params }: Params) {
                   <h3 className="mt-3 text-[16px] font-extrabold group-hover:text-accent">
                     {p.name}
                   </h3>
+                  <p className="mt-2 text-[14px] font-bold">{formatCad(p.priceCents)} CAD</p>
                 </Link>
               );
             })}

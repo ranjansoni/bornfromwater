@@ -46,73 +46,144 @@ export default async function Home() {
   const liveProducts = await getPublicCatalog();
   return (
     <>
-      <section className="horizon-hero rule-b relative max-h-[720px] min-h-[220px] w-full overflow-hidden aspect-video">
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster="/site/shop-banner.jpg"
-          aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
-        >
-          <source src="/site/homepage-banner.mp4" type="video/mp4" />
-        </video>
-      </section>
-
-      <section className="rule-b">
-        <div className="flex flex-col items-start gap-[22px] px-6 py-14 md:px-12 md:pt-18 md:pb-14">
-          <p className="text-[12px] tracking-[0.16em] text-accent-700 uppercase">
+      <section className="rule-b grid grid-cols-1 md:grid-cols-2">
+        <div className="flex flex-col items-start justify-center gap-5 px-6 py-9 md:px-12 md:py-12">
+          <p className="max-w-[34ch] text-[11px] tracking-[0.16em] text-accent-700 uppercase">
             Handcrafted gold-filled gemstone bracelets
           </p>
-          <h1 className="max-w-[12ch] text-[44px] leading-[0.96] font-extrabold tracking-[-0.035em] md:text-[78px]">
+          <h1 className="max-w-[12ch] text-[48px] leading-[0.96] font-extrabold tracking-[-0.035em] lg:text-[72px]">
             Wear your story.
           </h1>
-          <p className="max-w-[46ch] text-[18px] leading-[1.5]">
-            Inspired by the ocean. Handcrafted with purpose. Made to be worn
-            every day — genuine gemstones on 14k gold-filled, finished by hand
-            in Vancouver, Canada.
+          <p className="max-w-[42ch] text-[16px] leading-[1.5] md:text-[18px]">
+            Genuine gemstones. 14k gold-filled. Inspired by the ocean and
+            finished by hand in Vancouver, Canada.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button href="#shop">Shop the collections</Button>
+            <Button href="#shop">Shop bracelets</Button>
             {TIDE_LIVE && (
               <Button href="/collections/tide" variant="secondary">
-                See Tide, new
+                Explore Tide
               </Button>
             )}
           </div>
-          <div className="rule-t flex w-full flex-wrap gap-10 pt-6">
-            {stats.map((s) => (
-              <div key={s.label}>
-                <p className="text-[22px] font-extrabold">{s.n}</p>
-                <p className="mt-1 text-[11px] tracking-[0.12em] text-mid uppercase">
-                  {s.label}
-                </p>
-              </div>
-            ))}
-          </div>
+        </div>
+        <div className="rule-t relative h-[240px] overflow-hidden bg-surface md:h-auto md:min-h-[420px] md:border-t-0 md:rule-l">
+          <Image
+            src="/site/about.jpg"
+            alt="Gold-filled gemstone bracelet with a lotus charm worn on a wrist"
+            fill
+            preload
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover object-[50%_48%]"
+          />
         </div>
       </section>
 
-      {TIDE_LIVE && (
-        <div className="flex flex-nowrap items-center gap-[18px] bg-deep px-6 py-[18px] text-foam md:px-12">
-          <span className="shrink-0 text-[13px] font-extrabold tracking-[0.18em] uppercase">
-            New — the Tide collection
-          </span>
-          <span className="h-0.5 grow bg-foam/40" aria-hidden />
+      <div id="shop" className="scroll-mt-6">
+        <ProductGrid products={liveProducts} filterable={TIDE_LIVE} heading="Find your everyday piece" />
+      </div>
+
+      {/* Collection split */}
+      <section className="rule-b grid grid-cols-1 md:grid-cols-2">
+        <Link
+          href="/collections/signature"
+          className="flex flex-col gap-2 px-6 py-10 transition-colors hover:bg-surface md:px-12 md:rule-r"
+        >
+          <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
+            Collection 01 · Six pieces
+          </p>
+          <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
+            Signature
+          </h2>
+          <p className="max-w-[46ch] text-[15px] text-mid">
+            The founding line. Single-stone and paired bracelets on 14k
+            gold-filled, chosen for meaning as much as colour.
+          </p>
+        </Link>
+
+        {TIDE_LIVE ? (
           <Link
             href="/collections/tide"
-            className="shrink-0 text-[13px] font-extrabold tracking-[0.18em] text-sun uppercase hover:underline"
+            className="flex flex-col gap-2 bg-accent-100 px-6 py-10 transition-colors hover:bg-[#f7e2d6] md:px-12"
           >
-            View the collection →
+            <p className="text-[12px] tracking-[0.16em] text-accent-700 uppercase">
+              Collection 02 · New
+            </p>
+            <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
+              Tide
+            </h2>
+            <p className="max-w-[46ch] text-[15px] text-mid">
+              Peridot, aquamarine and amethyst — three pieces drawn from the
+              movement and colour of the sea.
+            </p>
           </Link>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col gap-2 bg-accent-100 px-6 py-10 md:px-12">
+            <p className="text-[12px] tracking-[0.16em] text-accent-700 uppercase">
+              Collection 02 · Coming soon
+            </p>
+            <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
+              Tide
+            </h2>
+            <p className="max-w-[46ch] text-[15px] text-mid">
+              Drawn from the movement of water — high tide, low tide, and the
+              line the sea leaves behind.
+            </p>
+          </div>
+        )}
+      </section>
 
-      {/* Lead with the brand story before introducing collections or products.
-          Image first on mobile; the photograph sticks on desktop because the
-          story copy is intentionally longer than the image panel. */}
+      <div className="rule-b flex flex-wrap gap-x-12 gap-y-5 px-6 py-7 md:px-12">
+        {stats.map((stat) => (
+          <div key={stat.label}>
+            <p className="text-[22px] font-extrabold">{stat.n}</p>
+            <p className="mt-1 text-[11px] tracking-[0.12em] text-mid uppercase">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Care strip */}
+      <section className="rule-b grid grid-cols-1 md:grid-cols-3">
+        {care.map((c, i) => (
+          <div
+            key={c.kicker}
+            className={`flex flex-col gap-2.5 px-6 py-11 md:px-12 ${
+              i > 0 ? "rule-t md:border-t-0 md:rule-l" : ""
+            }`}
+          >
+            <p className="text-[13px] font-extrabold tracking-[0.12em] text-accent-700 uppercase">
+              {c.kicker}
+            </p>
+            <h3 className="text-[21px] font-extrabold">{c.h}</h3>
+            <p className="text-[15px] text-mid">{c.p}</p>
+          </div>
+        ))}
+      </section>
+
+      <section className="rule-b grid grid-cols-1 gap-12 px-6 py-17 md:grid-cols-[1fr_2fr] md:px-12">
+        <div>
+          <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
+            Reviews
+          </p>
+          <p className="mt-4 text-[48px] leading-none font-extrabold">5.0</p>
+          <p className="mt-3 text-[13px] text-mid">
+            ★★★★★ · 2 customer reviews
+          </p>
+        </div>
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
+          {reviews.map((review) => (
+            <figure key={review.date} className="flex flex-col gap-5">
+              <blockquote className="text-[22px] leading-[1.3] font-bold tracking-[-0.02em] md:text-[26px]">
+                &ldquo;{review.quote}&rdquo;
+              </blockquote>
+              <figcaption className="text-[12px] tracking-[0.12em] text-mid uppercase">
+                Customer review · {review.date}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
       <section className="rule-b grid grid-cols-1 md:grid-cols-[1fr_1.1fr]">
         <div className="relative w-full min-w-0 md:rule-r">
           <div className="relative min-h-[500px] w-full overflow-hidden md:sticky md:top-0 md:h-[760px] md:min-h-0">
@@ -176,103 +247,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Collection split */}
-      <section className="rule-b grid grid-cols-1 md:grid-cols-2">
-        <Link
-          href="/collections/signature"
-          className="flex flex-col gap-2 px-6 py-10 transition-colors hover:bg-surface md:px-12 md:rule-r"
-        >
-          <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-            Collection 01 · Six pieces
-          </p>
-          <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
-            Signature
-          </h2>
-          <p className="max-w-[46ch] text-[15px] text-mid">
-            The founding line. Single-stone and paired bracelets on 14k
-            gold-filled, chosen for meaning as much as colour.
-          </p>
-        </Link>
-
-        {TIDE_LIVE ? (
-          <Link
-            href="/collections/tide"
-            className="flex flex-col gap-2 bg-accent-100 px-6 py-10 transition-colors hover:bg-[#f7e2d6] md:px-12"
-          >
-            <p className="text-[12px] tracking-[0.16em] text-accent-700 uppercase">
-              Collection 02 · New
-            </p>
-            <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
-              Tide
-            </h2>
-            <p className="max-w-[46ch] text-[15px] text-mid">
-              Peridot, aquamarine and amethyst — three pieces drawn from the
-              movement and colour of the sea.
-            </p>
-          </Link>
-        ) : (
-          <div className="flex flex-col gap-2 bg-accent-100 px-6 py-10 md:px-12">
-            <p className="text-[12px] tracking-[0.16em] text-accent-700 uppercase">
-              Collection 02 · Coming soon
-            </p>
-            <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
-              Tide
-            </h2>
-            <p className="max-w-[46ch] text-[15px] text-mid">
-              Drawn from the movement of water — high tide, low tide, and the
-              line the sea leaves behind.
-            </p>
-          </div>
-        )}
-      </section>
-
-      <div id="shop">
-        <ProductGrid products={liveProducts} filterable={TIDE_LIVE} />
-      </div>
-
-      {/* Care strip */}
-      <section className="rule-b grid grid-cols-1 md:grid-cols-3">
-        {care.map((c, i) => (
-          <div
-            key={c.kicker}
-            className={`flex flex-col gap-2.5 px-6 py-11 md:px-12 ${
-              i > 0 ? "rule-t md:border-t-0 md:rule-l" : ""
-            }`}
-          >
-            <p className="text-[13px] font-extrabold tracking-[0.12em] text-accent-700 uppercase">
-              {c.kicker}
-            </p>
-            <h3 className="text-[21px] font-extrabold">{c.h}</h3>
-            <p className="text-[15px] text-mid">{c.p}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="rule-b grid grid-cols-1 gap-12 px-6 py-17 md:grid-cols-[1fr_2fr] md:px-12">
-        <div>
-          <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-            Reviews
-          </p>
-          <p className="mt-4 text-[48px] leading-none font-extrabold">5.0</p>
-          <p className="mt-3 text-[13px] text-mid">
-            ★★★★★ · 2 customer reviews
-          </p>
-        </div>
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
-          {reviews.map((review) => (
-            <figure key={review.date} className="flex flex-col gap-5">
-              <blockquote className="text-[22px] leading-[1.3] font-bold tracking-[-0.02em] md:text-[26px]">
-                &ldquo;{review.quote}&rdquo;
-              </blockquote>
-              <figcaption className="text-[12px] tracking-[0.12em] text-mid uppercase">
-                Customer review · {review.date}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-
-      {/* Closing banner — the second and final horizon gradient. */}
+      {/* Closing banner */}
       <section className="horizon-closing flex flex-col items-start gap-7 px-6 py-16 text-sand md:px-12 md:py-22">
         <h2 className="max-w-[16ch] text-[40px] leading-[0.95] font-extrabold tracking-[-0.035em] md:text-[84px]">
           A gentle reminder of strength, balance and new beginnings.
