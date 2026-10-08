@@ -69,12 +69,12 @@ export default async function Home() {
         </div>
         <div className="rule-t relative h-[240px] overflow-hidden bg-surface md:h-auto md:min-h-[420px] md:border-t-0 md:rule-l">
           <Image
-            src="/site/about.jpg"
-            alt="Gold-filled gemstone bracelet with a lotus charm worn on a wrist"
+            src="/site/homepage-bracelets.png"
+            alt="Gold-filled gemstone bracelets arranged on stone beside Born From Water packaging"
             fill
             preload
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover object-[50%_48%]"
+            className="object-cover object-top"
           />
         </div>
       </section>
