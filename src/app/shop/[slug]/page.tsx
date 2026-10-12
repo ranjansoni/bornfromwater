@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { ProductGallery } from "@/components/ProductGallery";
 import { shippingConfiguration } from "@/lib/shipping-config";
 import {
   cardImage,
@@ -42,7 +43,6 @@ export default async function ProductPage({ params }: Params) {
   if (!product) notFound();
   if (product.collection === "tide" && !TIDE_LIVE) notFound();
 
-  const [primary, ...rest] = product.images;
   const related = products.filter(p => p.slug !== slug).slice(0, 3);
   const { shippingCents, automaticTax } = shippingConfiguration();
 
@@ -97,53 +97,7 @@ export default async function ProductPage({ params }: Params) {
 
       <section className="rule-b grid grid-cols-1 md:grid-cols-2">
         {/* Gallery — every approved product image in catalogue order. */}
-        <div className="md:rule-r">
-          {primary ? (
-            <div className="rule-b relative aspect-square w-full overflow-hidden bg-surface">
-              <Image
-                src={primary.src}
-                alt={product.name}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="rule-b flex aspect-square w-full flex-col items-center justify-center gap-3 bg-accent-100 px-6 text-center">
-              <span className="text-[11px] tracking-[0.18em] text-accent-700 uppercase">
-                Born From Water · Tide
-              </span>
-              <span className="text-[26px] font-extrabold tracking-[-0.02em]">
-                Photography coming soon
-              </span>
-            </div>
-          )}
-          {rest.length > 0 && (
-            <div className="grid grid-cols-3">
-              {rest.map((img, i) => (
-                <div
-                  key={img.src}
-                  className={`relative aspect-square w-full overflow-hidden bg-surface ${
-                    i % 3 !== 0 ? "rule-l" : ""
-                  } ${i >= 3 ? "rule-t" : ""}`}
-                >
-                  <Image
-                    src={img.src}
-                    alt={
-                      img.kind === "photo"
-                        ? `${product.name} — view ${i + 2}`
-                        : `${product.name} — product information`
-                    }
-                    fill
-                    sizes="(max-width: 768px) 33vw, 17vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery key={product.slug} name={product.name} images={product.images} />
 
         {/* Galleries run 9–14 images deep, so the buy panel sticks rather than
             stranding the reader beside a column of photographs. */}
