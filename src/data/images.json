@@ -331,6 +331,14 @@
     {
       "file": "08.jpg",
       "kind": "photo"
+    },
+    {
+      "file": "09.png",
+      "kind": "photo"
+    },
+    {
+      "file": "10.png",
+      "kind": "photo"
     }
   ],
   "aquamarine-tide": [
