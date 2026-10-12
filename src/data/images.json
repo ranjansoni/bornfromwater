@@ -135,6 +135,10 @@
     {
       "file": "11.jpg",
       "kind": "graphic"
+    },
+    {
+      "file": "12.png",
+      "kind": "photo"
     }
   ],
   "ocean-mist": [
@@ -310,14 +314,6 @@
     },
     {
       "file": "03.jpg",
-      "kind": "photo"
-    },
-    {
-      "file": "04.jpg",
-      "kind": "photo"
-    },
-    {
-      "file": "05.jpg",
       "kind": "photo"
     },
     {
