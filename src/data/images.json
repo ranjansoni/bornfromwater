@@ -25,10 +25,6 @@
       "kind": "photo"
     },
     {
-      "file": "07.jpg",
-      "kind": "photo"
-    },
-    {
       "file": "08-hydrangeas.png",
       "kind": "photo"
     },
@@ -267,10 +263,6 @@
       "kind": "photo"
     },
     {
-      "file": "07.jpg",
-      "kind": "photo"
-    },
-    {
       "file": "08.jpg",
       "kind": "graphic"
     },
@@ -279,15 +271,27 @@
       "kind": "graphic"
     },
     {
-      "file": "10.jpg",
-      "kind": "graphic"
-    },
-    {
       "file": "11.jpg",
       "kind": "graphic"
     },
     {
       "file": "12.jpg",
+      "kind": "photo"
+    },
+    {
+      "file": "13.png",
+      "kind": "photo"
+    },
+    {
+      "file": "14.png",
+      "kind": "photo"
+    },
+    {
+      "file": "15.png",
+      "kind": "photo"
+    },
+    {
+      "file": "16.png",
       "kind": "photo"
     }
   ],
