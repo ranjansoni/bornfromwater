@@ -8,6 +8,7 @@ import { cartKey, CHECKOUT_ATTEMPT_KEY, forgetAttempt, readAttempt } from "@/lib
 import { useCart } from "@/components/CartProvider";
 import { cardImage, formatCad } from "@/lib/products";
 import { checkoutCartTracking } from '@/lib/cart-tracking-client';
+import { recoverChangedCheckout } from '@/lib/checkout-recovery';
 
 export function CartView({ checkout = false, shipping }: {
   checkout?: boolean;
@@ -17,19 +18,19 @@ export function CartView({ checkout = false, shipping }: {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [endedAttempt, setEndedAttempt] = useState<string | null>(null);
-  const [previousCart, setPreviousCart] = useState(false);
 
-  async function beginPayment(resumePrevious = false) {
+  async function beginPayment() {
     if (!purchaseEligibility.allowed) { setError(purchaseEligibility.message ?? 'Shopping is currently available only within Canada.'); return; }
     setSubmitting(true);
     setError("");
 
     try {
-      const stored = readAttempt(sessionStorage);
-      if (stored && stored.cartKey !== cartKey(items) && !resumePrevious) {
-        setPreviousCart(true);
-        throw new Error("You have a previous checkout for a different selection. Review it before starting another payment.");
+      const previousPayment = await recoverChangedCheckout(sessionStorage, items);
+      if (previousPayment) {
+        window.location.assign(previousPayment);
+        return;
       }
+      const stored = readAttempt(sessionStorage);
       const checkoutId = stored?.checkoutId ?? crypto.randomUUID();
       sessionStorage.setItem(
         CHECKOUT_ATTEMPT_KEY,
@@ -172,16 +173,10 @@ export function CartView({ checkout = false, shipping }: {
               {error}
             </p>
           )}
-          {previousCart && !endedAttempt && (
-            <button type="button" disabled={submitting || !purchaseEligibility.allowed} onClick={() => beginPayment(true)} className="mt-4 text-accent-700 underline disabled:opacity-60">
-              Review previous checkout
-            </button>
-          )}
           {endedAttempt && (
             <button type="button" disabled={submitting || !purchaseEligibility.allowed} onClick={() => {
               forgetAttempt(sessionStorage, endedAttempt);
               setEndedAttempt(null);
-              setPreviousCart(false);
               setError("");
               void beginPayment();
             }} className="mt-4 text-accent-700 underline">

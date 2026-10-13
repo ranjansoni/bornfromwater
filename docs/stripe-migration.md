@@ -131,9 +131,13 @@ try-on assets are preserved.
 - Exact Stripe creation parameters are frozen in Postgres before the API call.
   Concurrent requests and timeout retries share `bfw-checkout-<order ID>` and the
   same parameters. A returned Session is associated atomically.
-- Cancellation returns to checkout and reuses the open Session. Changing the
-  browser cart does not silently create a replacement attempt; the customer can
-  review the previous checkout. The old attempt resolves before a fresh one starts.
+- Cancellation returns to checkout and reuses the open Session for an unchanged
+  cart. After changing or emptying/rebuilding the cart, “Continue to payment”
+  retires the previous open Session on the server before starting the current
+  selection. Stripe must confirm expiry before the browser clears the old UUID.
+  A payment that completed concurrently goes to order status; unknown outcomes
+  retain the UUID for retry. A missing Session is recovered with its original
+  idempotency key before retirement, including a delayed original checkout POST.
 - Missing Sessions on attempts at least 23 hours old require manual reconciliation.
   Never clear their retry UUID, swap credentials, or create a new Session to fix an
   uncertain charge. Locate the original Session in Stripe using `metadata.order_id`

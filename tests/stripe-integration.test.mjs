@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { createOrderStore } from '../src/lib/order-store.ts';
-import { checkoutDestination, CheckoutExpiredError } from '../src/lib/stripe-checkout.ts';
+import { checkoutDestination, retireCheckout, CheckoutExpiredError } from '../src/lib/stripe-checkout.ts';
+import { recoverChangedCheckout } from '../src/lib/checkout-recovery.ts';
+import { cartKey, CHECKOUT_ATTEMPT_KEY, readAttempt } from '../src/lib/checkout-attempt.ts';
 import { handleCheckout } from '../src/lib/checkout-handler.ts';
 import { handleStripeWebhook } from '../src/lib/stripe-webhook.ts';
 import { validateCart, verifyOrderToken } from '../src/lib/orders.ts';
@@ -29,17 +31,27 @@ function harness() {
         requests.push(structuredClone({ params, options }));
         if (!sessions.has(options.idempotencyKey)) {
           const total = params.line_items.reduce((sum, line) => sum + line.quantity * line.price_data.unit_amount, 0);
-          current = session({ client_reference_id: params.client_reference_id, metadata: params.metadata,
+          current = session({ id: `cs_test_${params.client_reference_id}`, client_reference_id: params.client_reference_id, metadata: params.metadata,
             amount_subtotal: total, amount_total: total + config.shippingCents, status: 'open', payment_status: 'unpaid' });
           sessions.set(options.idempotencyKey, current);
         }
         return sessions.get(options.idempotencyKey);
       },
-      retrieve: async () => current,
+      retrieve: async id => {
+        if (current?.id === id) return current;
+        return [...sessions.values()].find(value => value.id === id);
+      },
+      expire: async id => {
+        assert.equal(current.id, id);
+        assert.equal(current.status, 'open');
+        current = { ...current, status: 'expired', url: null };
+        sessions.set(`bfw-checkout-${current.client_reference_id}`, current);
+        return current;
+      },
     } } };
   const deps = { ...store, stripeClient: () => stripe, stripeConfiguration: () => config, webhookSecret: () => secret };
   const checkoutDeps = { ...deps, purchaseEligibility: vercelPurchaseEligibility, getCatalog: async () => products, signingSecret: () => process.env.ORDER_SIGNING_SECRET,
-    checkoutDestination: order => checkoutDestination(order, deps) };
+    checkoutDestination: order => checkoutDestination(order, deps), retireCheckout: order => retireCheckout(order, deps) };
   return { deps, checkoutDeps, stripe, requests, get current() { return current; }, set current(v) { current = v; } };
 }
 const request = (body = { items, checkoutId }, country = 'CA') => new Request('http://localhost/api/checkout', { method: 'POST', headers: { 'x-vercel-ip-country': country }, body: JSON.stringify(body) });
@@ -230,4 +242,107 @@ test('checkout rejects invalid sizes before writing orders or calling Stripe', a
     assert.equal(h.requests.length, 0);
     assert.equal((await db.query('SELECT * FROM orders')).rows.length, 0);
   }
+});
+
+function savedAttempt() {
+  const data = new Map([[CHECKOUT_ATTEMPT_KEY, JSON.stringify({ checkoutId, cartKey: cartKey(items) })]]);
+  return { getItem: key => data.get(key) ?? null, removeItem: key => data.delete(key) };
+}
+const changedItems = [{ slug: product.slug, size: 'small', quantity: 2 }];
+const retireRequest = () => request({ action: 'retire', checkoutId, items: changedItems });
+
+test('cancel, empty/rebuild cart, and continue retires the old Session and starts the current selection', async () => {
+  const h = harness(); const active = await started(h); const oldSessionId = h.current.id;
+  const storage = savedAttempt();
+  const send = (_url, init) => handleCheckout(new Request('http://localhost/api/checkout', {
+    ...init, headers: { ...init.headers, 'x-vercel-ip-country': 'CA' },
+  }), h.checkoutDeps);
+  assert.equal(await recoverChangedCheckout(storage, changedItems, send), null);
+  assert.equal(readAttempt(storage), null);
+  assert.equal((await store.getOrder(active.orderId)).paymentStatus, 'expired');
+  assert.equal((await h.stripe.checkout.sessions.retrieve(oldSessionId)).status, 'expired');
+
+  const freshId = '33333333-3333-4333-8333-333333333333';
+  const response = await handleCheckout(request({ checkoutId: freshId, items: changedItems }), h.checkoutDeps);
+  assert.equal(response.status, 200);
+  const fresh = await store.getOrderByCheckoutRequest(freshId);
+  assert.notEqual(fresh.stripeSessionId, oldSessionId);
+  assert.deepEqual(fresh.validatedCart.map(line => [line.size, line.quantity]), [['small', 2]]);
+  // An old tab or late POST can never resurrect the retired checkout.
+  assert.equal((await handleCheckout(request(), h.checkoutDeps)).status, 409);
+});
+
+test('an unchanged cart reuses the saved attempt without retiring it', async () => {
+  const storage = savedAttempt();
+  assert.equal(await recoverChangedCheckout(storage, items, () => assert.fail('Must not retire')), null);
+  assert.equal(readAttempt(storage).checkoutId, checkoutId);
+});
+
+test('retirement reserves a missing attempt so a delayed original request cannot reopen it', async () => {
+  const h = harness();
+  const response = await handleCheckout(retireRequest(), h.checkoutDeps);
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).code, 'CHECKOUT_ENDED');
+  assert.equal((await store.getOrderByCheckoutRequest(checkoutId)).paymentStatus, 'expired');
+  assert.equal((await handleCheckout(request(), h.checkoutDeps)).status, 409);
+});
+
+test('retirement recovers a lost create response with the original idempotency key', async () => {
+  const h = harness(); const create = h.stripe.checkout.sessions.create;
+  h.stripe.checkout.sessions.create = async (...args) => { await create(...args); throw new Error('Lost response'); };
+  assert.equal((await handleCheckout(request(), h.checkoutDeps)).status, 503);
+  h.stripe.checkout.sessions.create = create;
+  assert.equal((await handleCheckout(retireRequest(), h.checkoutDeps)).status, 409);
+  assert.deepEqual(h.requests[0], h.requests[1]);
+  assert.equal(h.current.status, 'expired');
+});
+
+test('retirement works after the old product is removed from the catalogue', async () => {
+  const h = harness(); await started(h);
+  h.checkoutDeps.getCatalog = async () => [];
+  assert.equal((await handleCheckout(retireRequest(), h.checkoutDeps)).status, 409);
+  assert.equal(h.current.status, 'expired');
+});
+
+for (const payment_status of ['paid', 'unpaid']) {
+  test(`payment completing during retirement goes to status (${payment_status})`, async () => {
+    const h = harness(); const active = await started(h); const storage = savedAttempt();
+    h.stripe.checkout.sessions.expire = async () => {
+      h.current = { ...h.current, status: 'complete', payment_status };
+      throw new Error('Session completed concurrently');
+    };
+    const path = await recoverChangedCheckout(storage, changedItems, () => handleCheckout(retireRequest(), h.checkoutDeps));
+    assert.match(path, /^\/checkout\/status\?token=/);
+    assert.equal(readAttempt(storage).checkoutId, checkoutId);
+    assert.equal((await store.getOrder(active.orderId)).paymentStatus, payment_status === 'paid' ? 'approved' : 'processing');
+    assert.equal(h.requests.length, 1);
+  });
+}
+
+test('lost expiration response is reconciled; an open or unreachable Session keeps the attempt', async () => {
+  const h = harness(); await started(h); const storage = savedAttempt();
+  h.stripe.checkout.sessions.expire = async () => { throw new Error('Unavailable'); };
+  await assert.rejects(recoverChangedCheckout(storage, changedItems, () => handleCheckout(retireRequest(), h.checkoutDeps)));
+  assert.equal(readAttempt(storage).checkoutId, checkoutId);
+  h.stripe.checkout.sessions.expire = async () => { h.current = { ...h.current, status: 'expired' }; throw new Error('Lost response'); };
+  assert.equal(await recoverChangedCheckout(storage, changedItems, () => handleCheckout(retireRequest(), h.checkoutDeps)), null);
+  assert.equal(readAttempt(storage), null);
+});
+
+test('network failures and mismatched acknowledgements never clear the saved attempt', async () => {
+  const storage = savedAttempt();
+  await assert.rejects(recoverChangedCheckout(storage, changedItems, async () => { throw new Error('Network down'); }));
+  assert.equal(readAttempt(storage).checkoutId, checkoutId);
+  await assert.rejects(recoverChangedCheckout(storage, changedItems, async () => Response.json({ code: 'CHECKOUT_ENDED', checkoutId: 'other' }, { status: 409 })));
+  assert.equal(readAttempt(storage).checkoutId, checkoutId);
+});
+
+test('retirement rejects mismatched Stripe identity and old ambiguous attempts', async () => {
+  const h = harness(); const active = await started(h);
+  h.current = { ...h.current, metadata: {} };
+  assert.equal((await handleCheckout(retireRequest(), h.checkoutDeps)).status, 503);
+  assert.equal((await store.getOrder(active.orderId)).paymentStatus, 'pending');
+  await db.query("UPDATE orders SET stripe_session_id = NULL, created_at = now() - interval '25 hours' WHERE order_id = $1", [active.orderId]);
+  assert.equal((await handleCheckout(retireRequest(), h.checkoutDeps)).status, 503);
+  assert.equal(h.requests.length, 1);
 });

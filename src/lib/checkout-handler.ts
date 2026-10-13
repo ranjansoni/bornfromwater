@@ -1,13 +1,13 @@
 import "server-only";
 import { createPendingOrder, getOrderByCheckoutRequest } from "@/lib/order-store";
 import { isUuid, signingSecret, validateCart } from "@/lib/orders";
-import { CheckoutExpiredError, checkoutDestination, statusPath } from "@/lib/stripe-checkout";
+import { CheckoutExpiredError, checkoutDestination, retireCheckout, statusPath } from "@/lib/stripe-checkout";
 import { stripeConfiguration } from "@/lib/stripe-config";
 import { catalog } from './catalog-store';
 import { trackCartCheckout } from '@/lib/cart-activity-handler';
 import { purchaseEligibility } from './purchase-location';
 
-const defaults = { purchaseEligibility, getCatalog: catalog.list, createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, stripeConfiguration, signingSecret, trackCartCheckout };
+const defaults = { purchaseEligibility, getCatalog: catalog.list, createPendingOrder, getOrderByCheckoutRequest, checkoutDestination, retireCheckout, stripeConfiguration, signingSecret, trackCartCheckout };
 const json = (body: object, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
 
 export async function handleCheckout(request: Request, deps = defaults) {
@@ -17,6 +17,7 @@ export async function handleCheckout(request: Request, deps = defaults) {
   try {
     body = await request.json();
     if (!body || !isUuid(body.checkoutId)) throw new Error();
+    if (body.action !== undefined && body.action !== "retire") throw new Error();
   } catch {
     return json({ error: "Invalid checkout request." }, 400);
   }
@@ -39,6 +40,9 @@ export async function handleCheckout(request: Request, deps = defaults) {
     }
     // A concurrent legacy request can win the unique checkout_request_id insert.
     if (order.paymentProvider === "godaddy") return json({ paymentPath: statusPath(order) });
+    // Even if the original POST has not inserted yet, reserve its UUID through
+    // the same unique insert and retire that Session. A late retry cannot reopen it.
+    if (body.action === "retire") return json({ paymentPath: await deps.retireCheckout(order) });
     const paymentPath = await deps.checkoutDestination(order);
     // Cart reporting is best-effort; it cannot change the order or prevent payment.
     try { if (deps.trackCartCheckout) await deps.trackCartCheckout(request, body.cartTracking, order); }

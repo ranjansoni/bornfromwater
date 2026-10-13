@@ -30,7 +30,7 @@ export async function confirmStripeSession(order: StoredOrder, session: Stripe.C
   }
 }
 
-export async function checkoutDestination(order: StoredOrder, deps = defaults) {
+export async function checkoutDestination(order: StoredOrder, deps = defaults, retireOpenSession = false) {
   const config = deps.stripeConfiguration();
   if (order.paymentProvider !== "stripe" || order.stripeLivemode !== config.livemode ||
       order.stripeAccountId !== config.accountId) {
@@ -92,6 +92,16 @@ export async function checkoutDestination(order: StoredOrder, deps = defaults) {
     order = { ...order, stripeSessionId: session.id, stripeCheckoutParams: params };
   }
   verifyCheckoutSession(order, session);
+  if (retireOpenSession && session.status === "open") {
+    try {
+      session = await stripe.checkout.sessions.expire(session.id);
+    } catch {
+      // Payment may have completed concurrently, or expiration succeeded but its
+      // response was lost. Retrieve the authoritative state before releasing it.
+      session = await stripe.checkout.sessions.retrieve(session.id);
+    }
+    verifyCheckoutSession(order, session);
+  }
   if (session.status === "expired") {
     await deps.recordStripeStatus(order.orderId, session.id, "expired");
     throw new CheckoutExpiredError("This checkout has expired. Please continue again to start a new checkout.");
@@ -100,8 +110,15 @@ export async function checkoutDestination(order: StoredOrder, deps = defaults) {
     await confirmStripeSession(order, session, deps);
     return destination;
   }
+  if (retireOpenSession) throw new Error("The previous checkout could not be closed. Please retry.");
   if (!session.url || session.status !== "open") throw new Error("Stripe checkout is unavailable.");
   return session.url;
+}
+
+export async function retireCheckout(order: StoredOrder, deps = defaults) {
+  // Recover a missing Session through the original idempotency key too: a lost
+  // create/association response does not mean that no payable Session exists.
+  return checkoutDestination(order, deps, true);
 }
 
 export async function verifyStripeAccount(stripe: Stripe, accountId: string) {
