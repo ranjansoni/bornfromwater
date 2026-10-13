@@ -162,7 +162,7 @@ export function CartView({ checkout = false, shipping }: {
             </div>
           </dl>
           <p className="mt-3 text-[13px] leading-[1.55] text-mid">
-            One shipping fee per order, within Canada only. All prices are in CAD.
+            Handcrafted to order. Ships within 3–5 business days. One shipping fee per order, within Canada only. All prices are in CAD.
             {shipping.automaticTax && " Any applicable tax is calculated at payment."}
             {" Pay securely with Stripe; your final total is confirmed before you pay."}
           </p>

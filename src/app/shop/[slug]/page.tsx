@@ -123,7 +123,7 @@ export default async function ProductPage({ params }: Params) {
               {formatCad(shippingCents)} CAD flat shipping within Canada.
             </p>
             <p className="mt-1 text-[13px] leading-[1.6] text-mid">
-              One shipping fee per order. Ships from Vancouver, BC.
+              Handcrafted to order. Ships within 3–5 business days. One shipping fee per order. Ships from Vancouver, BC.
               {automaticTax && " Any applicable tax is calculated at payment."}
               {" Secure payment with Stripe."}
             </p>
