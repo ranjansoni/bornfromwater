@@ -1,3 +1,4 @@
+import { sizeLabel } from "@/lib/bracelet-sizes";
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/admin-session';
 import { cartActivity } from '@/lib/cart-activity-store';
@@ -26,7 +27,7 @@ export default async function CartsPage({ searchParams }: { searchParams: Promis
     {result.carts.length ? <div className="admin-cart-list">{result.carts.map(cart => <article key={cart.id} className="admin-panel">
       <div className="admin-title-row"><div><h2>Anonymous cart #{cart.id.slice(0, 8).toUpperCase()}</h2><p className="admin-hint admin-muted">Last cart activity: {orderDate(cart.lastActivity)}</p></div>
         <span className="admin-badge">{cart.stage === 'abandoned' ? 'Potentially abandoned' : 'Recent activity'}</span></div>
-      <ul className="admin-items">{cart.items.map(item => <li key={item.sku}><div><strong>{item.name || item.sku}</strong><small>Qty {item.quantity}</small></div><span>{money(item.unitPriceCents * item.quantity)}</span></li>)}</ul>
+      <ul className="admin-items">{cart.items.map(item => <li key={`${item.sku}-${item.size ?? "legacy"}`}><div><strong>{item.name || item.sku}{item.size ? ` · ${sizeLabel(item.size)}` : ""}</strong><small>Qty {item.quantity}</small></div><span>{money(item.unitPriceCents * item.quantity)}</span></li>)}</ul>
       <div className="admin-cart-total"><strong>Item subtotal</strong><strong>{money(cart.subtotal)} CAD</strong></div>
       <p className="admin-hint admin-muted">Shipping and tax are not included. First seen {orderDate(cart.firstSeen)}.</p>
       {cart.orderId ? <Link className="admin-link" href={`/admin/orders/${cart.orderId}`}>Checkout started · View checkout →</Link> : <p className="admin-hint admin-muted">Checkout has not started.</p>}

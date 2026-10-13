@@ -1,10 +1,12 @@
+import { DEFAULT_SIZE, isBraceletSize, cartLineKey, type BraceletSize } from "./bracelet-sizes";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createHash } from "node:crypto";
 import { type Product } from "@/lib/products";
 
-export type SubmittedCartItem = { slug: string; quantity: number };
+export type SubmittedCartItem = { slug: string; size?: BraceletSize; quantity: number };
 export type ValidatedCartLine = {
   product: Product;
+  size: BraceletSize;
   quantity: number;
   lineTotalCents: number;
 };
@@ -38,20 +40,25 @@ export function validateCart(items: unknown, products: Product[]): {
       typeof item.quantity !== "number" ||
       !Number.isInteger(item.quantity) ||
       item.quantity < 1 ||
-      item.quantity > MAX_QUANTITY ||
-      seen.has(item.slug)
+      item.quantity > MAX_QUANTITY
     ) {
       throw new Error("The cart contains an invalid item.");
+    }
+
+    const size = "size" in item ? item.size : DEFAULT_SIZE;
+    if (!isBraceletSize(size) || seen.has(cartLineKey(item.slug, size))) {
+      throw new Error("The cart contains an invalid size or duplicate item.");
     }
 
     const product = products.find(p => p.slug === item.slug);
     if (!product || !product.active || product.placeholder) {
       throw new Error("A cart item is no longer available.");
     }
-    seen.add(item.slug);
+    seen.add(cartLineKey(item.slug, size));
 
     return {
       product,
+      size,
       quantity: item.quantity,
       lineTotalCents: product.priceCents * item.quantity,
     };
@@ -63,7 +70,7 @@ export function validateCart(items: unknown, products: Product[]): {
   }
 
   const canonical = lines
-    .map((line) => `${line.product.slug}:${line.quantity}:${line.product.priceCents}`)
+    .map((line) => `${line.product.slug}:${line.size}:${line.quantity}:${line.product.priceCents}`)
     .sort()
     .join("|");
   const fingerprint = createHash("sha256").update(canonical).digest("hex");

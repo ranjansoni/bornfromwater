@@ -1,4 +1,5 @@
 import 'server-only';
+import { DEFAULT_SIZE, type BraceletSize } from './bracelet-sizes';
 import { createHmac } from 'node:crypto';
 import { isUuid, signingSecret, validateCart } from './orders';
 import { stripeConfiguration } from './stripe-config';
@@ -7,8 +8,8 @@ import type { StoredCartLine } from './order-store';
 
 export type CartScope = { accountId: string; livemode: boolean; origin: string };
 export type CartSnapshot = { id: string; revision: number; items: StoredCartLine[]; subtotal: number; fingerprint: string };
-export function cartFingerprint(items: { slug?: string; quantity: number }[]) {
-  return items.map(i => `${i.slug}:${i.quantity}`).sort().join('|');
+export function cartFingerprint(items: { slug?: string; size?: BraceletSize; quantity: number }[]) {
+  return items.map(i => `${i.slug}:${i.size ?? DEFAULT_SIZE}:${i.quantity}`).sort().join('|');
 }
 export function trackingIdentity(value: unknown, scope: CartScope, secret = signingSecret()) {
   const v = value as { token?: unknown; revision?: unknown } | null;
@@ -21,8 +22,8 @@ export function cartSnapshot(value: unknown, scope: CartScope, secret: string, p
   const identity = trackingIdentity(value, scope, secret);
   if (Array.isArray(v?.items) && v.items.length === 0) return { ...identity, items: [], subtotal: 0, fingerprint: '' };
   const cart = validateCart(v?.items, products);
-  const items = cart.lines.map(({ product, quantity }) => ({ slug: product.slug, sku: product.sku,
-    name: product.name, unitPriceCents: product.priceCents, quantity }));
+  const items = cart.lines.map(({ product, quantity, size }) => ({ slug: product.slug, sku: product.sku,
+    name: product.name, size, unitPriceCents: product.priceCents, quantity }));
   return { ...identity, items, subtotal: cart.totalCents, fingerprint: cartFingerprint(items) };
 }
 export function validCartOrigin(request: Request, scope: CartScope, deploymentUrl = process.env.VERCEL_URL) {

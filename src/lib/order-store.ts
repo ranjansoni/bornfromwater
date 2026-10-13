@@ -4,6 +4,7 @@ import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import { randomUUID } from "node:crypto";
 import type { ValidatedCartLine } from "@/lib/orders";
 import { paymentCurrency, type PaymentCurrency } from "@/lib/payment-currency";
+import type { BraceletSize } from "./bracelet-sizes";
 import type Stripe from "stripe";
 import type { VerifiedPayment } from "@/lib/checkout-service";
 
@@ -11,6 +12,7 @@ export type PaymentStatus = "pending" | "processing" | "approved" | "declined" |
 
 export type StoredCartLine = {
   sku: string;
+  size?: BraceletSize;
   slug?: string;
   name?: string;
   quantity: number;
@@ -100,8 +102,9 @@ export function createOrderStore(client: { query: (text: string, params?: unknow
     livemode: boolean,
     accountId: string,
   ): Promise<StoredOrder> {
-    const validatedCart: StoredCartLine[] = lines.map(({ product, quantity }) => ({
+    const validatedCart: StoredCartLine[] = lines.map(({ product, quantity, size }) => ({
       sku: product.sku,
+      size,
       slug: product.slug,
       name: product.name,
       quantity,

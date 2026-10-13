@@ -1,3 +1,4 @@
+import { sizeLabel } from "@/lib/bracelet-sizes";
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { requireAdmin } from '@/lib/admin-session';
@@ -28,7 +29,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
     {order.status === 'cancelled' && <p className="admin-cancellation"><strong>Order cancelled.</strong> Do not fulfill this order. Cancellation does not confirm a refund; check the payment in Stripe for its current refund status.</p>}
     <div className="admin-detail-grid"><aside>
       <section className="admin-panel"><h2>Order summary</h2><ul className="admin-items">{order.items.map((item, index) => <li key={`${item.sku}-${index}`}>
-        <div><strong>{item.name || item.sku}</strong><small>{item.sku} · Qty {item.quantity}</small></div><span>{money(item.unitPriceCents * item.quantity, order.currency)}</span></li>)}</ul>
+        <div><strong>{item.name || item.sku}{item.size ? ` · ${sizeLabel(item.size)}` : ""}</strong><small>{item.sku} · Qty {item.quantity}</small></div><span>{money(item.unitPriceCents * item.quantity, order.currency)}</span></li>)}</ul>
         <dl className="admin-totals"><div><dt>Subtotal</dt><dd>{money(order.subtotal, order.currency)}</dd></div><div><dt>Shipping</dt><dd>{money(order.shipping, order.currency)}</dd></div>
           <div><dt>Tax</dt><dd>{money(order.tax, order.currency)}</dd></div><div className="admin-total"><dt>Total</dt><dd>{money(order.total, order.currency)} {order.currency}</dd></div></dl>
         <p className="admin-payment">{order.paymentStatus === 'approved' ? '✓ Payment confirmed at checkout' : `Payment: ${order.paymentStatus}`}</p>

@@ -1,3 +1,4 @@
+import { sizeLabel } from "@/lib/bracelet-sizes";
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/admin-session';
 import { adminOrders } from '@/lib/admin-order-store';
@@ -35,7 +36,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     {result.orders.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th><span className="sr-only">Open order</span></th></tr></thead>
       <tbody>{result.orders.map(order => <tr key={order.orderId} className={order.deletedAt ? 'admin-deleted-row' : undefined}><td><Link href={`/admin/orders/${order.orderId}`} className="admin-order-number">#{order.orderId.slice(0, 8).toUpperCase()}</Link><small>{orderDate(order.createdAt)}</small></td>
         <td><strong>{order.customer.name || 'Not recorded'}</strong><small>{order.customer.email || '—'}</small></td>
-        <td>{order.items.reduce((sum, item) => sum + item.quantity, 0)} item{order.items.reduce((sum, item) => sum + item.quantity, 0) === 1 ? '' : 's'}<small>{order.items.map(item => item.name || item.sku).join(', ')}</small></td>
+        <td>{order.items.reduce((sum, item) => sum + item.quantity, 0)} item{order.items.reduce((sum, item) => sum + item.quantity, 0) === 1 ? '' : 's'}<small>{order.items.map(item => `${item.name || item.sku}${item.size ? ` · ${sizeLabel(item.size)}` : ""}`).join(', ')}</small></td>
         <td className="admin-nowrap">{money(order.total, order.currency)}<small>{order.currency}</small></td>
         <td><span className={`admin-badge admin-status-${order.status}`}>{order.provider === 'godaddy' ? order.paymentStatus : statusLabels[order.status]}</span>{order.deletedAt && <small><span className="admin-badge admin-status-deleted">Deleted</span></small>}</td>
         <td><Link href={`/admin/orders/${order.orderId}`} aria-label={`Open order ${order.orderId.slice(0, 8)}`}>View →</Link></td></tr>)}</tbody></table></div>

@@ -1,8 +1,9 @@
+import type { BraceletSize } from './bracelet-sizes';
 import { cartKey } from './checkout-attempt';
 
 const KEY = 'bfw-cart-observation-v1';
 const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
-type Item = { slug: string; quantity: number };
+type Item = { slug: string; size?: BraceletSize; quantity: number };
 export type CartTracking = { token: string; revision: number };
 type SavedTracking = CartTracking & { createdAt: number; empty: boolean };
 

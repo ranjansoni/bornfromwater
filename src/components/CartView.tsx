@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { cartLineKey, sizeLabel } from "@/lib/bracelet-sizes";
 import { useState } from "react";
 import { cartKey, CHECKOUT_ATTEMPT_KEY, forgetAttempt, readAttempt } from "@/lib/checkout-attempt";
 import { useCart } from "@/components/CartProvider";
@@ -89,15 +90,15 @@ export function CartView({ checkout = false, shipping }: {
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_360px]">
         <div className="rule-t">
-          {unavailableItems.map(item => <div key={item.slug} className="rule-b py-5">
-            <p className="text-[14px]">{item.slug.replace(/-/g, ' ')} is no longer available. Remove it to continue.</p>
-            <button type="button" onClick={() => removeItem(item.slug)} className="mt-3 text-[12px] text-accent-700 underline">Remove unavailable item</button>
+          {unavailableItems.map(item => <div key={cartLineKey(item.slug, item.size)} className="rule-b py-5">
+            <p className="text-[14px]">{item.slug.replace(/-/g, ' ')} ({sizeLabel(item.size)}) is no longer available. Remove it to continue.</p>
+            <button type="button" onClick={() => removeItem(item.slug, item.size)} className="mt-3 text-[12px] text-accent-700 underline">Remove unavailable item</button>
           </div>)}
-          {lines.map(({ product, quantity }) => {
+          {lines.map(({ product, quantity, size }) => {
             const image = cardImage(product);
             return (
               <article
-                key={product.slug}
+                key={cartLineKey(product.slug, size)}
                 className="rule-b grid grid-cols-[96px_1fr] gap-5 py-5 sm:grid-cols-[128px_1fr_auto]"
               >
                 <Link
@@ -111,24 +112,25 @@ export function CartView({ checkout = false, shipping }: {
                 <div>
                   <h2 className="text-[18px] font-extrabold">{product.name}</h2>
                   <p className="mt-1 text-[13px] text-mid">{product.sku}</p>
+                  <p className="mt-1 text-[14px] font-semibold">Size: {sizeLabel(size)}</p>
                   <p className="mt-2 text-[14px]">{formatCad(product.priceCents)}</p>
                   {!checkout && (
                     <div className="mt-4 flex items-center gap-3">
-                      <label htmlFor={`quantity-${product.slug}`} className="text-[12px] uppercase">
+                      <label htmlFor={`quantity-${cartLineKey(product.slug, size)}`} className="text-[12px] uppercase">
                         Qty
                       </label>
                       <input
-                        id={`quantity-${product.slug}`}
+                        id={`quantity-${cartLineKey(product.slug, size)}`}
                         type="number"
                         min="1"
                         max={purchaseEligibility.allowed ? 10 : quantity}
                         value={quantity}
-                        onChange={(event) => setQuantity(product.slug, Number(event.target.value))}
+                        onChange={(event) => setQuantity(product.slug, size, Number(event.target.value))}
                         className="w-16 border-2 border-divider bg-transparent px-2 py-1"
                       />
                       <button
                         type="button"
-                        onClick={() => removeItem(product.slug)}
+                        onClick={() => removeItem(product.slug, size)}
                         className="text-[12px] text-accent-700 underline"
                       >
                         Remove

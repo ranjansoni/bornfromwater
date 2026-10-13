@@ -51,7 +51,7 @@ export default async function ProductPage({ params }: Params) {
     { label: "Stone", value: `${product.stone}, genuine` },
     {
       label: "Sizing",
-      value: "Made to your wrist measurement — include it in your payment note",
+      value: "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
     },
     { label: "Ships from", value: "Vancouver, British Columbia" },
   ];

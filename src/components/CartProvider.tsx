@@ -15,10 +15,12 @@ import { usePathname } from 'next/navigation';
 import { observeCart } from '@/lib/cart-tracking-client';
 import { LOCATION_UNAVAILABLE_MESSAGE, type PurchaseEligibility } from '@/lib/purchase-policy';
 
+import { DEFAULT_SIZE, isBraceletSize, sizeLabel, type BraceletSize } from "@/lib/bracelet-sizes";
+
 const STORAGE_KEY = "born-from-water-cart-v1";
 const MAX_QUANTITY = 10;
 
-export type CartItem = { slug: string; quantity: number };
+export type CartItem = { slug: string; size: BraceletSize; quantity: number };
 export type CartLine = CartItem & { product: Product };
 type CatalogResponse = { products: Product[]; purchaseEligibility: PurchaseEligibility };
 
@@ -32,9 +34,9 @@ type CartContextValue = {
   unavailableItems: CartItem[];
   getProduct: (slug: string) => Product | undefined;
   refreshCatalog: () => Promise<CatalogResponse>;
-  addItem: (slug: string) => Promise<boolean>;
-  setQuantity: (slug: string, quantity: number) => Promise<void>;
-  removeItem: (slug: string) => void;
+  addItem: (slug: string, size: BraceletSize) => Promise<boolean>;
+  setQuantity: (slug: string, size: BraceletSize, quantity: number) => Promise<void>;
+  removeItem: (slug: string, size: BraceletSize) => void;
   clearCart: () => void;
 };
 
@@ -59,7 +61,9 @@ function sanitizeItems(value: unknown): CartItem[] {
       return [];
     }
 
-    return [{ slug: item.slug, quantity: item.quantity }];
+    const size = "size" in item ? item.size : DEFAULT_SIZE;
+    if (!isBraceletSize(size)) return [];
+    return [{ slug: item.slug, size, quantity: item.quantity }];
   });
 }
 
@@ -147,7 +151,7 @@ export function CartProvider({ children, initialProducts, initialPurchaseEligibi
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  const addItem = useCallback(async (slug: string) => {
+  const addItem = useCallback(async (slug: string, size: BraceletSize) => {
     if (!purchaseEligibility.allowed) return false;
     let latest;
     try { latest = await refreshCatalog(); } catch { return false; }
@@ -155,29 +159,29 @@ export function CartProvider({ children, initialProducts, initialPurchaseEligibi
     if (!latest.purchaseEligibility.allowed || !product?.active || product.placeholder) return false;
     const quantity = Math.min(
       MAX_QUANTITY,
-      (items.find((item) => item.slug === slug)?.quantity ?? 0) + 1,
+      (items.find((item) => item.slug === slug && item.size === size)?.quantity ?? 0) + 1,
     );
 
     setItems((current) => {
-      const existing = current.find((item) => item.slug === slug);
-      if (!existing) return [...current, { slug, quantity: 1 }];
+      const existing = current.find((item) => item.slug === slug && item.size === size);
+      if (!existing) return [...current, { slug, size, quantity: 1 }];
       return current.map((item) =>
-        item.slug === slug
+        item.slug === slug && item.size === size
           ? { ...item, quantity: Math.min(MAX_QUANTITY, item.quantity + 1) }
           : item,
       );
     });
-    setNotice({ productName: product.name, quantity });
+    setNotice({ productName: `${product.name} · ${sizeLabel(size)}`, quantity });
     return true;
   }, [items, purchaseEligibility.allowed, refreshCatalog]);
 
-  const setQuantity = useCallback(async (slug: string, quantity: number) => {
+  const setQuantity = useCallback(async (slug: string, size: BraceletSize, quantity: number) => {
     if (!Number.isInteger(quantity)) return;
     if (quantity < 1) {
-      setItems((current) => current.filter((item) => item.slug !== slug));
+      setItems((current) => current.filter((item) => !(item.slug === slug && item.size === size)));
       return;
     }
-    if (quantity > (items.find(item => item.slug === slug)?.quantity ?? 0)) {
+    if (quantity > (items.find(item => item.slug === slug && item.size === size)?.quantity ?? 0)) {
       if (!purchaseEligibility.allowed) return;
       let latest;
       try { latest = await refreshCatalog(); } catch { return; }
@@ -186,15 +190,15 @@ export function CartProvider({ children, initialProducts, initialPurchaseEligibi
     }
     setItems((current) =>
       current.map((item) =>
-        item.slug === slug
+        item.slug === slug && item.size === size
           ? { ...item, quantity: Math.min(MAX_QUANTITY, quantity) }
           : item,
       ),
     );
   }, [items, purchaseEligibility.allowed, refreshCatalog]);
 
-  const removeItem = useCallback((slug: string) => {
-    setItems((current) => current.filter((item) => item.slug !== slug));
+  const removeItem = useCallback((slug: string, size: BraceletSize) => {
+    setItems((current) => current.filter((item) => !(item.slug === slug && item.size === size)));
   }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
@@ -208,7 +212,7 @@ export function CartProvider({ children, initialProducts, initialPurchaseEligibi
     return {
       items,
       lines,
-      unavailableItems: items.filter(item => !lines.some(line => line.slug === item.slug)),
+      unavailableItems: items.filter(item => !lines.some(line => line.slug === item.slug && line.size === item.size)),
       getProduct,
       refreshCatalog,
       itemCount: items.reduce((sum, line) => sum + line.quantity, 0),

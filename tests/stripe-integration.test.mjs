@@ -201,3 +201,33 @@ test('invalid payload and unavailable configuration fail safely without insertin
   assert.equal(response.status, 503); assert.doesNotMatch(await response.text(), /sk_test/);
   assert.equal((await db.query('SELECT * FROM orders')).rows.length, 0);
 });
+
+
+test('selected bracelet sizes remain separate through validation, order storage and Stripe', async () => {
+  const h = harness();
+  const sizedItems = [{ slug: product.slug, quantity: 1, size: 'small' }, { slug: product.slug, quantity: 2, size: 'large' }];
+  const response = await handleCheckout(request({ items: sizedItems, checkoutId }), h.checkoutDeps);
+  assert.equal(response.status, 200);
+  const saved = await store.getOrderByCheckoutRequest(checkoutId);
+  assert.deepEqual(saved.validatedCart.map(line => [line.size, line.quantity]), [['small', 1], ['large', 2]]);
+  assert.equal(saved.totalCents, product.priceCents * 3);
+  const lines = h.requests[0].params.line_items;
+  assert.equal(lines.length, 2);
+  assert.equal(lines[0].price_data.product_data.description, 'Bracelet size: Small — 6.5″');
+  assert.equal(lines[1].price_data.product_data.description, 'Bracelet size: Large — 7.5″');
+  assert.equal(lines[1].price_data.product_data.metadata.size, 'large');
+  // A retry with a changed selection must still reuse the original frozen order.
+  await handleCheckout(request({ items: [{ slug: product.slug, quantity: 1, size: 'medium' }], checkoutId }), h.checkoutDeps);
+  assert.deepEqual((await store.getOrderByCheckoutRequest(checkoutId)).validatedCart, saved.validatedCart);
+  assert.equal(h.requests.length, 1);
+});
+
+test('checkout rejects invalid sizes before writing orders or calling Stripe', async () => {
+  for (const size of ['extra-large', '', null, 7, {}]) {
+    const h = harness();
+    const response = await handleCheckout(request({ items: [{ slug: product.slug, quantity: 1, size }], checkoutId }), h.checkoutDeps);
+    assert.equal(response.status, 400);
+    assert.equal(h.requests.length, 0);
+    assert.equal((await db.query('SELECT * FROM orders')).rows.length, 0);
+  }
+});

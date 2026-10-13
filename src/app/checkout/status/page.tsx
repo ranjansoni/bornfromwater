@@ -1,3 +1,4 @@
+import { sizeLabel } from "@/lib/bracelet-sizes";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ClearPaidCart } from "@/components/ClearPaidCart";
@@ -59,6 +60,9 @@ export default async function OrderStatusPage({ searchParams }: Props) {
     </p>
     {unavailable && <p role="alert" className="mt-4">We couldn’t refresh the payment status. The saved status is shown; please check again shortly.</p>}
     <p className="mt-3 text-[14px] text-mid">Order: {order.orderId}</p>
+    <ul className="mt-6 space-y-2">{order.validatedCart.map((line, index) => (
+      <li key={`${line.sku}-${index}`}>{line.name ?? line.sku}{line.size ? ` · ${sizeLabel(line.size)}` : ""} · Qty {line.quantity}</li>
+    ))}</ul>
     <div className="mt-8 flex flex-wrap gap-6">
       {approved ? <Link href="/" className="text-accent-700 underline">Continue shopping</Link>
         : <a href={`/checkout/status?token=${encodeURIComponent(token)}`} className="text-accent-700 underline">Refresh status</a>}

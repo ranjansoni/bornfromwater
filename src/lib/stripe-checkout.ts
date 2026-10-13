@@ -1,4 +1,5 @@
 import "server-only";
+import { sizeLabel } from "./bracelet-sizes";
 import type Stripe from "stripe";
 import { canCreateSession, verifiedPayment, verifyCheckoutSession } from "@/lib/checkout-service";
 import { attachCheckoutSession, recordStripePayment, recordStripeStatus, saveCheckoutParams,
@@ -62,7 +63,11 @@ export async function checkoutDestination(order: StoredOrder, deps = defaults) {
         quantity: line.quantity,
         price_data: {
           currency: "cad", unit_amount: line.unitPriceCents, tax_behavior: "exclusive",
-          product_data: { name: line.name ?? line.sku, metadata: { sku: line.sku } },
+          product_data: {
+            name: line.name ?? line.sku,
+            ...(line.size ? { description: `Bracelet size: ${sizeLabel(line.size)}` } : {}),
+            metadata: { sku: line.sku, ...(line.size ? { size: line.size } : {}) },
+          },
         },
       })),
       adaptive_pricing: { enabled: false },
@@ -75,7 +80,7 @@ export async function checkoutDestination(order: StoredOrder, deps = defaults) {
         type: "fixed_amount", display_name: "Standard shipping",
         fixed_amount: { amount: config.shippingCents, currency: "cad" }, tax_behavior: "exclusive",
       } }],
-      custom_fields: [{ key: "sizingnote", label: { type: "custom", custom: "Bracelet size / order note" },
+      custom_fields: [{ key: "sizingnote", label: { type: "custom", custom: "Order note" },
         type: "text", optional: true, text: { maximum_length: 255 } }],
       success_url: `${config.origin}${destination}`,
       cancel_url: `${config.origin}/checkout?cancelled=1`,
