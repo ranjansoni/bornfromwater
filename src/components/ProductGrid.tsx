@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { AddToCartButton } from "@/components/AddToCartButton";
 import { cardImage, formatCad, type Collection, type Product } from "@/lib/products";
 
 type Filter = Collection | "all";
+const launchedProductSlug = "pearl-drift";
 
 const headings: Record<Filter, string> = {
   all: "All pieces",
@@ -16,6 +16,7 @@ const headings: Record<Filter, string> = {
 
 export function ProductCard({ product }: { product: Product }) {
   const img = cardImage(product);
+  const justLaunched = product.slug === launchedProductSlug && product.active && !product.placeholder;
 
   return (
     <article className="flex flex-col">
@@ -41,6 +42,11 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           </div>
         )}
+        {justLaunched && (
+          <span className="absolute top-4 left-4 bg-accent px-3 py-2 text-[11px] font-extrabold tracking-[0.12em] text-sand uppercase">
+            Just launched
+          </span>
+        )}
       </Link>
 
       <p className="mt-4 text-[11px] tracking-[0.14em] text-accent-700 uppercase">
@@ -57,13 +63,12 @@ export function ProductCard({ product }: { product: Product }) {
       <p className="mt-2 mb-4 text-[14px] text-mid">{product.blurb}</p>
 
       <div className="rule-t mt-auto flex justify-end pt-2.5">
-        {product.placeholder ? (
-          <span className="text-[12px] font-extrabold tracking-[0.12em] text-mid uppercase">
-            Listing coming soon
-          </span>
-        ) : (
-          <AddToCartButton slug={product.slug} variant="text" />
-        )}
+        <Link
+          href={`/shop/${product.slug}`}
+          className="text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase hover:text-accent hover:underline"
+        >
+          {product.placeholder ? "View details →" : "View details & order →"}
+        </Link>
       </div>
     </article>
   );
@@ -87,6 +92,10 @@ export function ProductGrid({
       ? products
       : products.filter((p) => p.collection === filter)
     : products;
+  const launchedProduct = shown.find((product) => product.slug === launchedProductSlug);
+  const ordered = launchedProduct
+    ? [launchedProduct, ...shown.filter((product) => product.slug !== launchedProductSlug)]
+    : shown;
 
   const chips: Filter[] = ["all", "signature", "tide"];
 
@@ -121,7 +130,7 @@ export function ProductGrid({
       </div>
 
       <div className="grid grid-cols-1 gap-x-8 gap-y-10 pt-10 sm:grid-cols-2 lg:grid-cols-3">
-        {shown.map((p) => (
+        {ordered.map((p) => (
           <ProductCard key={p.slug} product={p} />
         ))}
       </div>

@@ -23,7 +23,7 @@ const cart = validateCart(items, products);
 beforeEach(() => db.exec('TRUNCATE orders CASCADE'));
 after(() => db.close());
 
-function harness() {
+function harness(checkoutConfig = config) {
   const sessions = new Map(); const requests = []; let current;
   const stripe = { webhooks: sdk.webhooks, accounts: { retrieveCurrent: async () => ({ id: accountId }) },
     checkout: { sessions: {
@@ -32,7 +32,9 @@ function harness() {
         if (!sessions.has(options.idempotencyKey)) {
           const total = params.line_items.reduce((sum, line) => sum + line.quantity * line.price_data.unit_amount, 0);
           current = session({ id: `cs_test_${params.client_reference_id}`, client_reference_id: params.client_reference_id, metadata: params.metadata,
-            amount_subtotal: total, amount_total: total + config.shippingCents, status: 'open', payment_status: 'unpaid' });
+            amount_subtotal: total, amount_total: total + checkoutConfig.shippingCents,
+            total_details: { amount_shipping: checkoutConfig.shippingCents, amount_tax: 0, amount_discount: 0 },
+            status: 'open', payment_status: 'unpaid' });
           sessions.set(options.idempotencyKey, current);
         }
         return sessions.get(options.idempotencyKey);
@@ -49,7 +51,7 @@ function harness() {
         return current;
       },
     } } };
-  const deps = { ...store, stripeClient: () => stripe, stripeConfiguration: () => config, webhookSecret: () => secret };
+  const deps = { ...store, stripeClient: () => stripe, stripeConfiguration: () => checkoutConfig, webhookSecret: () => secret };
   const checkoutDeps = { ...deps, purchaseEligibility: vercelPurchaseEligibility, getCatalog: async () => products, signingSecret: () => process.env.ORDER_SIGNING_SECRET,
     checkoutDestination: order => checkoutDestination(order, deps), retireCheckout: order => retireCheckout(order, deps) };
   return { deps, checkoutDeps, stripe, requests, get current() { return current; }, set current(v) { current = v; } };
@@ -75,6 +77,36 @@ test('concurrent requests create one order and reuse frozen Session parameters',
   const persisted = await store.getOrderByCheckoutRequest(checkoutId);
   assert.equal(persisted.stripeSessionId, h.current.id);
   assert.equal(persisted.stripeAccountId, accountId);
+});
+test('Pearl Drift checkout charges CA$62 plus CA$10 shipping and accepts Canadian delivery only', async () => {
+  const h = harness({ ...config, shippingCents: 1000 });
+  const pearl = products.find(p => p.slug === 'pearl-drift');
+  assert.equal(pearl.priceCents, 6200);
+  assert.equal(pearl.active, true);
+  assert.equal(pearl.placeholder, false);
+  const body = { checkoutId, items: [{ slug: pearl.slug, size: 'medium', quantity: 1 }], expectedPrices: { [pearl.slug]: 6200 } };
+  for (const country of ['US', 'GB', '']) {
+    const response = await handleCheckout(request(body, country), h.checkoutDeps);
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).code, 'CANADA_ONLY');
+  }
+  assert.equal((await db.query('SELECT count(*)::integer AS count FROM orders')).rows[0].count, 0);
+  assert.equal(h.requests.length, 0);
+  const response = await handleCheckout(request(body, 'CA'), h.checkoutDeps);
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).paymentPath, /^https:\/\/checkout\.stripe\.com/);
+  const params = h.requests[0].params;
+  assert.equal(params.line_items[0].price_data.unit_amount, 6200);
+  assert.equal(params.line_items[0].price_data.currency, 'cad');
+  assert.deepEqual(params.shipping_address_collection.allowed_countries, ['CA']);
+  assert.equal(params.shipping_options[0].shipping_rate_data.fixed_amount.amount, 1000);
+  assert.equal(params.shipping_options[0].shipping_rate_data.fixed_amount.currency, 'cad');
+  h.current = { ...h.current, status: 'complete', payment_status: 'paid' };
+  assert.equal((await handleStripeWebhook(webhookRequest('checkout.session.completed', h.current), h.deps)).status, 200);
+  const paid = await store.getOrderByCheckoutRequest(checkoutId);
+  assert.equal(paid.paymentStatus, 'approved');
+  assert.equal(paid.totalCents, 6200);
+  assert.equal(paid.paidTotalCents, 7200);
 });
 test('country rejection preserves an existing checkout and Canadian retries still reuse it', async () => {
   const h = harness(); const active = await started(h);

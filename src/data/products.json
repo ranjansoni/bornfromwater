@@ -120,6 +120,20 @@
     "images": []
   },
   {
+    "slug": "pearl-drift",
+    "name": "Pearl Drift Bracelet",
+    "collection": "tide",
+    "stone": "Freshwater pearl",
+    "price": "CA$62.00",
+    "priceCents": 6200,
+    "sku": "BFW-PEARL-DRIFT",
+    "blurb": "Inspired by pearls drifting with the ocean tide — a little of the sea to carry with you.",
+    "description": "Pearl Drift is named for pearls imagined drifting with the tide, carried by the gentle movement of the ocean. Three pairs of genuine freshwater pearl drops hang from a 14k gold-filled link chain, catching the light as you move. Handcrafted in Canada, it brings a little of the sea into every day.",
+    "meaning": "Pearl Drift takes its name from the image of pearls carried gently by the ocean tide.",
+    "images": [],
+    "placeholder": false
+  },
+  {
     "slug": "peridot-tide",
     "name": "Peridot Tide",
     "collection": "tide",

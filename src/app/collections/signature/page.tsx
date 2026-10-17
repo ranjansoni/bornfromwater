@@ -5,7 +5,7 @@ import { getPublicCatalog } from "@/lib/catalog-store";
 export const metadata: Metadata = {
   title: "Signature Collection",
   description:
-    "The founding line. Single-stone and paired bracelets on 14k gold-filled, chosen for meaning as much as colour.",
+    "The founding line. Gemstones on 14k gold-filled, chosen for meaning as much as colour.",
 };
 
 export default async function SignatureCollection() {
@@ -20,7 +20,7 @@ export default async function SignatureCollection() {
           Signature
         </h1>
         <p className="mt-6 max-w-[52ch] text-[19px] leading-[1.5] text-mid">
-          The founding line. Single-stone and paired bracelets on 14k
+          The founding line. Gemstones on 14k
           gold-filled, chosen for meaning as much as colour.
         </p>
       </section>

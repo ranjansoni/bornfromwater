@@ -1,0 +1,6 @@
+-- Add Pearl Drift without changing owner-edited products or orders.
+BEGIN;
+INSERT INTO catalog_products (slug, sku, name, collection, stone, price_cents, blurb, description, meaning, story, images, active, placeholder, sort_order) VALUES
+('pearl-drift', 'BFW-PEARL-DRIFT', 'Pearl Drift Bracelet', 'tide', 'Freshwater pearl', 6200, 'Inspired by pearls drifting with the ocean tide — a little of the sea to carry with you.', 'Pearl Drift is named for pearls imagined drifting with the tide, carried by the gentle movement of the ocean. Three pairs of genuine freshwater pearl drops hang from a 14k gold-filled link chain, catching the light as you move. Handcrafted in Canada, it brings a little of the sea into every day.', 'Pearl Drift takes its name from the image of pearls carried gently by the ocean tide.', NULL, '[{"src":"/products/pearl-drift/01.jpg","kind":"photo"},{"src":"/products/pearl-drift/02.jpg","kind":"photo"},{"src":"/products/pearl-drift/03.jpg","kind":"photo"},{"src":"/products/pearl-drift/04.jpg","kind":"photo"},{"src":"/products/pearl-drift/05.png","kind":"graphic"},{"src":"/products/pearl-drift/06.png","kind":"graphic"},{"src":"/products/pearl-drift/07.png","kind":"graphic"},{"src":"/products/pearl-drift/08.png","kind":"graphic"}]'::jsonb, true, false, 6)
+ON CONFLICT (slug) DO NOTHING;
+COMMIT;

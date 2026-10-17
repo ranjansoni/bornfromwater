@@ -16,7 +16,7 @@ test('new payments always use CAD; historical USD remains readable', () => {
 });
 test('sandbox defaults are explicit; live mode is opt-in', () => {
   assert.deepEqual(stripeConfiguration(env).countries, ['CA']);
-  assert.equal(stripeConfiguration(env).shippingCents, 0);
+  assert.equal(stripeConfiguration(env).shippingCents, 1000);
   assert.throws(() => stripeConfiguration({ ...env, STRIPE_SECRET_KEY: 'sk_live_fixture' }));
   const live = { ...env, STRIPE_SECRET_KEY: 'sk_live_fixture', STRIPE_ALLOW_LIVE: 'true', APP_URL: 'https://bornfromwater.ca', STRIPE_SHIPPING_COUNTRIES: 'CA', STRIPE_SHIPPING_CENTS: '500', STRIPE_AUTOMATIC_TAX: 'false' };
   assert.equal(stripeConfiguration(live).livemode, true);

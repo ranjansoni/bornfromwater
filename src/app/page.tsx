@@ -7,7 +7,7 @@ import { TIDE_LIVE } from "@/lib/products";
 
 const stats = [
   { n: "14k", label: "Gold-filled" },
-  { n: "Waterproof", label: "Everyday wear" },
+  { n: "Everyday", label: "Thoughtful wear" },
   { n: "Vancouver", label: "Handcrafted with Intention" },
 ];
 
@@ -19,8 +19,8 @@ const care = [
   },
   {
     kicker: "02 — Water",
-    h: "Wear it in the shower and the sea",
-    p: "Waterproof by design. Rinse in fresh water after salt or chlorine and dry with a soft cloth.",
+    h: "Care for each material",
+    p: "Gold-filled metal handles everyday moisture. Wipe pearl pieces gently after wear and store them dry.",
   },
   {
     kicker: "03 — Care",
@@ -44,18 +44,19 @@ const reviews = [
 
 export default async function Home() {
   const liveProducts = await getPublicCatalog();
+  const signatureCount = liveProducts.filter(p => p.collection === "signature").length;
   return (
     <>
       <section className="rule-b grid grid-cols-1 md:grid-cols-2">
         <div className="flex flex-col items-start justify-center gap-5 px-6 py-9 md:px-12 md:py-12">
           <p className="max-w-[34ch] text-[11px] tracking-[0.16em] text-accent-700 uppercase">
-            Handcrafted gold-filled gemstone bracelets
+            Handcrafted gold-filled gemstone and pearl bracelets
           </p>
           <h1 className="max-w-[12ch] text-[48px] leading-[0.96] font-extrabold tracking-[-0.035em] lg:text-[72px]">
             Wear your story.
           </h1>
           <p className="max-w-[42ch] text-[16px] leading-[1.5] md:text-[18px]">
-            Genuine gemstones. 14k gold-filled. Inspired by the ocean and
+            Genuine gemstones and freshwater pearls. 14k gold-filled. Inspired by the ocean and
             finished by hand in Vancouver, Canada.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -90,13 +91,13 @@ export default async function Home() {
           className="flex flex-col gap-2 px-6 py-10 transition-colors hover:bg-surface md:px-12 md:rule-r"
         >
           <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-            Collection 01 · Six pieces
+            Collection 01 · {signatureCount} pieces
           </p>
           <h2 className="text-[34px] font-extrabold tracking-[-0.02em]">
             Signature
           </h2>
           <p className="max-w-[46ch] text-[15px] text-mid">
-            The founding line. Single-stone and paired bracelets on 14k
+            The founding line. Gemstones on 14k
             gold-filled, chosen for meaning as much as colour.
           </p>
         </Link>
@@ -113,8 +114,8 @@ export default async function Home() {
               Tide
             </h2>
             <p className="max-w-[46ch] text-[15px] text-mid">
-              Peridot, aquamarine and amethyst — three pieces drawn from the
-              movement and colour of the sea.
+              Gemstones and freshwater pearls drawn from the movement and
+              colour of the sea.
             </p>
           </Link>
         ) : (

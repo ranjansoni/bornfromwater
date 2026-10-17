@@ -5,7 +5,7 @@ import { getPublicCatalog } from "@/lib/catalog-store";
 export const metadata: Metadata = {
   title: "Tide Collection",
   description:
-    "Three gemstone bracelets inspired by the movement and colour of the sea: Peridot Tide, Aquamarine Tide, and Amethyst Tide.",
+    "Gemstone and freshwater pearl bracelets inspired by the movement and colour of the sea.",
 };
 
 export default async function TideCollection() {
@@ -20,8 +20,8 @@ export default async function TideCollection() {
           Tide
         </h1>
         <p className="mt-6 max-w-[52ch] text-[19px] leading-[1.5] text-mid">
-          Three gemstone bracelets inspired by the movement and colour of the
-          sea: Peridot Tide, Aquamarine Tide, and Amethyst Tide.
+          Gemstones and freshwater pearls inspired by the movement and colour
+          of the sea.
         </p>
       </section>
 

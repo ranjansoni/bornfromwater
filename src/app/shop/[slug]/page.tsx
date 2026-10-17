@@ -108,6 +108,14 @@ export default async function ProductPage({ params }: Params) {
           <h1 className="max-w-[20ch] text-[34px] leading-[1.05] font-extrabold tracking-[-0.03em] md:text-[44px]">
             {product.name}
           </h1>
+          {product.slug === "pearl-drift" && (
+            <div className="max-w-[52ch]">
+              <p className="text-[12px] font-extrabold tracking-[0.12em] text-accent-700 uppercase">
+                Inspired by the tide
+              </p>
+              <p className="mt-3 text-[16px] leading-[1.65]">{product.description}</p>
+            </div>
+          )}
           <div className="w-full">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
               <p className="text-[24px] font-extrabold">{formatCad(product.priceCents)} CAD</p>
@@ -128,6 +136,11 @@ export default async function ProductPage({ params }: Params) {
               {" Secure payment with Stripe."}
             </p>
           </div>
+          {product.slug === "pearl-drift" && (
+            <p className="max-w-[52ch] text-[14px] leading-[1.6] text-mid">
+              Pearl care: wipe gently after wear and store dry.
+            </p>
+          )}
           {/* Product story and details follow the purchase information. */}
           {product.story ? (
             <div className="rule-t w-full pt-5">
@@ -146,11 +159,11 @@ export default async function ProductPage({ params }: Params) {
                 </p>
               ))}
             </div>
-          ) : (
+          ) : product.slug !== "pearl-drift" ? (
             <p className="max-w-[52ch] text-[16px] leading-[1.6]">
               {product.description}
             </p>
-          )}
+          ) : null}
 
           <dl className="rule-t w-full">
             {specs.map((s, i) => (

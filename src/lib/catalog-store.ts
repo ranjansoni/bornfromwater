@@ -7,6 +7,12 @@ import type { CatalogUpdate } from './catalog-management';
 type Query = { query: (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]> };
 export type CatalogProduct = Product & { sortOrder: number; version: number; updatedAt: string };
 export class CatalogConflictError extends Error {}
+async function localPreviewCatalog(): Promise<CatalogProduct[] | null> {
+  if (process.env.NODE_ENV !== 'development' || process.env.DATABASE_URL) return null;
+  const { products } = await import('./catalog-seed');
+  return products.map((product, sortOrder) => ({ ...product, sortOrder, version: 1,
+    updatedAt: new Date(0).toISOString() }));
+}
 function mapProduct(row: Record<string, unknown>): CatalogProduct {
   return { slug: String(row.slug), sku: String(row.sku), name: String(row.name),
     collection: row.collection as Product['collection'], stone: String(row.stone),
@@ -19,9 +25,13 @@ function mapProduct(row: Record<string, unknown>): CatalogProduct {
 }
 export function createCatalogStore(client: Query) {
   async function list(includeDisabled = false) {
+    const preview = await localPreviewCatalog();
+    if (preview) return preview.filter(product => includeDisabled || product.active);
     return (await client.query('SELECT * FROM catalog_products WHERE ($1::boolean OR active) ORDER BY sort_order, slug', [includeDisabled])).map(mapProduct);
   }
   async function get(slug: string) {
+    const preview = await localPreviewCatalog();
+    if (preview) return preview.find(product => product.slug === slug) ?? null;
     const rows = await client.query('SELECT * FROM catalog_products WHERE slug = $1', [slug]);
     return rows[0] ? mapProduct(rows[0]) : null;
   }
