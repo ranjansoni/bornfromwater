@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const social = [
   { label: "Instagram", href: "https://www.instagram.com/born.from.water/" },
   { label: "Pinterest", href: "https://www.pinterest.com/bornfromwater" },
@@ -34,6 +36,9 @@ export function Footer() {
           </p>
         </div>
         <nav className="flex flex-wrap gap-6">
+          <Link href="/refund-policy" className="text-[13px] text-sun hover:underline">
+            Returns &amp; Refunds
+          </Link>
           {social.map((s) => (
             <a
               key={s.label}

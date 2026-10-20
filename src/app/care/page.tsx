@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Care, materials & policies",
@@ -45,7 +46,8 @@ const policies = [
   },
   {
     h: "Returns & cancellations",
-    p: "See item details for eligibility. Cancellations are not accepted — message me with any problem.",
+    p: "Returns are accepted within 14 days of receiving your order. Cancellations are not accepted — message us with any problem.",
+    href: "/refund-policy",
   },
 ];
 
@@ -134,6 +136,11 @@ export default function Care() {
           >
             <h3 className="text-[17px] font-extrabold">{p.h}</h3>
             <p className="text-[14px] text-mid">{p.p}</p>
+            {"href" in p && p.href && (
+              <Link href={p.href} className="text-[14px] font-bold text-accent-700 underline underline-offset-2">
+                Read our full returns &amp; refunds policy
+              </Link>
+            )}
           </div>
         ))}
       </section>

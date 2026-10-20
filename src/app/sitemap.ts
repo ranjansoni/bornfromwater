@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "",
     "/about",
     "/care",
+    "/refund-policy",
     "/collections/signature",
     ...(TIDE_LIVE ? ["/collections/tide"] : []),
   ];
