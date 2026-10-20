@@ -6,10 +6,10 @@ import { Footer } from './Footer';
 import type { Product } from '@/lib/products';
 import type { PurchaseEligibility } from '@/lib/purchase-policy';
 
-export function StoreShell({ children, products, purchaseEligibility }: { children: React.ReactNode; products: Product[]; purchaseEligibility: PurchaseEligibility }) {
+export function StoreShell({ children, products, purchaseEligibility, complimentaryShipping }: { children: React.ReactNode; products: Product[]; purchaseEligibility: PurchaseEligibility; complimentaryShipping: boolean }) {
   const path = usePathname();
   if (path === '/admin' || path.startsWith('/admin/')) return <>{children}</>;
-  return <CartProvider initialProducts={products} initialPurchaseEligibility={purchaseEligibility}><Header /><PurchaseNotice /><main>{children}</main><Footer /></CartProvider>;
+  return <CartProvider initialProducts={products} initialPurchaseEligibility={purchaseEligibility}><Header />{complimentaryShipping && <p className="rule-b bg-accent-100 px-6 py-3 text-center text-[13px] font-semibold leading-relaxed text-accent-700 md:px-12">A little extra love — complimentary shipping within Canada for a limited time.</p>}<PurchaseNotice /><main>{children}</main><Footer /></CartProvider>;
 }
 
 function PurchaseNotice() {

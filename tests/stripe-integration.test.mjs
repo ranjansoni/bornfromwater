@@ -9,6 +9,7 @@ import { cartKey, CHECKOUT_ATTEMPT_KEY, readAttempt } from '../src/lib/checkout-
 import { handleCheckout } from '../src/lib/checkout-handler.ts';
 import { handleStripeWebhook } from '../src/lib/stripe-webhook.ts';
 import { validateCart, verifyOrderToken } from '../src/lib/orders.ts';
+import { shippingConfiguration } from '../src/lib/shipping-config.ts';
 import { products } from '../src/lib/catalog-seed.ts';
 import { checkoutId, accountId, config, sdk, secret, session, webhookRequest, vercelPurchaseEligibility } from './fixtures.mjs';
 import { POST as retiredCharge } from '../src/app/api/checkout/charge/route.ts';
@@ -107,6 +108,34 @@ test('Pearl Drift checkout charges CA$62 plus CA$10 shipping and accepts Canadia
   assert.equal(paid.paymentStatus, 'approved');
   assert.equal(paid.totalCents, 6200);
   assert.equal(paid.paidTotalCents, 7200);
+});
+test('complimentary Canadian shipping creates a zero-cost Stripe rate and records the paid subtotal', async () => {
+  const delivery = shippingConfiguration({ STRIPE_SHIPPING_COUNTRIES: 'CA', STRIPE_SHIPPING_CENTS: '1000', FREE_SHIPPING_OFFER_ENABLED: 'true' });
+  const h = harness({ ...config, ...delivery });
+  const response = await handleCheckout(request(), h.checkoutDeps);
+  assert.equal(response.status, 200);
+  const params = h.requests[0].params;
+  assert.deepEqual(params.shipping_address_collection.allowed_countries, ['CA']);
+  assert.equal(params.shipping_options[0].shipping_rate_data.fixed_amount.amount, 0);
+  assert.equal(params.shipping_options[0].shipping_rate_data.display_name, 'Complimentary shipping within Canada');
+  assert.equal(h.current.amount_total, cart.totalCents);
+  h.current = { ...h.current, status: 'complete', payment_status: 'paid' };
+  assert.equal((await handleStripeWebhook(webhookRequest('checkout.session.completed', h.current), h.deps)).status, 200);
+  const paid = await store.getOrderByCheckoutRequest(checkoutId);
+  assert.equal(paid.paymentStatus, 'approved');
+  assert.equal((await db.query('SELECT shipping_cents FROM orders WHERE order_id = $1', [paid.orderId])).rows[0].shipping_cents, 0);
+  assert.equal(paid.paidTotalCents, cart.totalCents);
+});
+test('an unpaid checkout with the old shipping fee closes before the free-shipping offer is used', async () => {
+  const h = harness({ ...config, shippingCents: 1000 });
+  const old = await started(h);
+  h.checkoutDeps.stripeConfiguration = () => ({ ...config, shippingCents: 0 });
+  const response = await handleCheckout(request(), h.checkoutDeps);
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).code, 'CHECKOUT_ENDED');
+  assert.equal(h.current.status, 'expired');
+  assert.equal(h.requests.length, 1);
+  assert.equal((await store.getOrder(old.orderId)).paymentStatus, 'expired');
 });
 test('country rejection preserves an existing checkout and Canadian retries still reuse it', async () => {
   const h = harness(); const active = await started(h);

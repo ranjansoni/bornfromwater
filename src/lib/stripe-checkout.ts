@@ -77,7 +77,7 @@ export async function checkoutDestination(order: StoredOrder, deps = defaults, r
         allowed_countries: config.countries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[],
       },
       shipping_options: [{ shipping_rate_data: {
-        type: "fixed_amount", display_name: "Standard shipping",
+        type: "fixed_amount", display_name: config.shippingCents === 0 ? "Complimentary shipping within Canada" : "Standard shipping",
         fixed_amount: { amount: config.shippingCents, currency: "cad" }, tax_behavior: "exclusive",
       } }],
       custom_fields: [{ key: "sizingnote", label: { type: "custom", custom: "Order note" },

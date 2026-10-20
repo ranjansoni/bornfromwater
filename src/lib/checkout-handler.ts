@@ -28,6 +28,14 @@ export async function handleCheckout(request: Request, deps = defaults) {
     if (order?.paymentProvider === "godaddy") return json({ paymentPath: statusPath(order) });
     const config = deps.stripeConfiguration();
     deps.signingSecret();
+    const previousShipping = order?.stripeCheckoutParams?.shipping_options?.[0]
+      ?.shipping_rate_data?.fixed_amount?.amount;
+    if (order?.paymentProvider === "stripe" && previousShipping !== undefined &&
+        previousShipping !== config.shippingCents && body.action !== "retire") {
+      // A saved Stripe Session cannot be repriced. Close it before the customer
+      // starts a new checkout with the current shipping offer.
+      return json({ paymentPath: await deps.retireCheckout(order) });
+    }
     if (!order) {
       let cart;
       const products = await deps.getCatalog();

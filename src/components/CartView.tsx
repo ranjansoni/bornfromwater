@@ -12,7 +12,7 @@ import { recoverChangedCheckout } from '@/lib/checkout-recovery';
 
 export function CartView({ checkout = false, shipping }: {
   checkout?: boolean;
-  shipping: { shippingCents: number; automaticTax: boolean };
+  shipping: { shippingCents: number; complimentaryShipping: boolean; automaticTax: boolean };
 }) {
   const { items, lines, totalCents, ready, setQuantity, removeItem, unavailableItems, refreshCatalog, purchaseEligibility } = useCart();
   const [submitting, setSubmitting] = useState(false);
@@ -154,8 +154,8 @@ export function CartView({ checkout = false, shipping }: {
               <dd>{formatCad(totalCents)} CAD</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt>Flat shipping · Canada</dt>
-              <dd className="shrink-0">{formatCad(shipping.shippingCents)} CAD</dd>
+              <dt>{shipping.complimentaryShipping ? "Complimentary shipping · Canada" : "Flat shipping · Canada"}</dt>
+              <dd className="shrink-0">{shipping.complimentaryShipping ? "Free" : `${formatCad(shipping.shippingCents)} CAD`}</dd>
             </div>
             <div className="rule-t flex justify-between gap-4 pt-4 text-[18px] font-extrabold">
               <dt>Estimated total</dt>
@@ -163,7 +163,7 @@ export function CartView({ checkout = false, shipping }: {
             </div>
           </dl>
           <p className="mt-3 text-[13px] leading-[1.55] text-mid">
-            Handcrafted to order. Ships within 3–5 business days. One shipping fee per order, within Canada only. All prices are in CAD.
+            Handcrafted to order. Ships within 3–5 business days. {shipping.complimentaryShipping ? "Complimentary shipping within Canada for a limited time." : "Shipping within Canada only."} All prices are in CAD.
             {shipping.automaticTax && " Any applicable tax is calculated at payment."}
             {" Pay securely with Stripe; your final total is confirmed before you pay."}
           </p>

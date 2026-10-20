@@ -44,7 +44,7 @@ export default async function ProductPage({ params }: Params) {
   if (product.collection === "tide" && !TIDE_LIVE) notFound();
 
   const related = products.filter(p => p.slug !== slug).slice(0, 3);
-  const { shippingCents, automaticTax } = shippingConfiguration();
+  const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
 
   const specs = [
     { label: "Metal", value: "14k gold-filled" },
@@ -128,10 +128,10 @@ export default async function ProductPage({ params }: Params) {
               )}
             </div>
             <p className="mt-4 text-[14px] font-bold">
-              {formatCad(shippingCents)} CAD flat shipping within Canada.
+              {complimentaryShipping ? "Complimentary shipping within Canada for a limited time." : `${formatCad(shippingCents)} CAD flat shipping within Canada.`}
             </p>
             <p className="mt-1 text-[13px] leading-[1.6] text-mid">
-              Handcrafted to order. Ships within 3–5 business days. One shipping fee per order. Ships from Vancouver, BC.
+              Handcrafted to order. Ships within 3–5 business days. Ships from Vancouver, BC.
               {automaticTax && " Any applicable tax is calculated at payment."}
               {" Secure payment with Stripe."}
             </p>
