@@ -6,7 +6,7 @@ import { useState } from "react";
 import { cardImage, formatCad, type Collection, type Product } from "@/lib/products";
 
 type Filter = Collection | "all";
-const launchedProductSlug = "pearl-drift";
+const featuredProductSlugs = ["pearl-drift", "still-within"];
 
 const headings: Record<Filter, string> = {
   all: "All pieces",
@@ -16,7 +16,7 @@ const headings: Record<Filter, string> = {
 
 export function ProductCard({ product }: { product: Product }) {
   const img = cardImage(product);
-  const justLaunched = product.slug === launchedProductSlug && product.active && !product.placeholder;
+  const isNew = featuredProductSlugs.includes(product.slug) && product.active && !product.placeholder;
 
   return (
     <article className="flex flex-col">
@@ -42,9 +42,9 @@ export function ProductCard({ product }: { product: Product }) {
             </span>
           </div>
         )}
-        {justLaunched && (
+        {isNew && (
           <span className="absolute top-4 left-4 bg-accent px-3 py-2 text-[11px] font-extrabold tracking-[0.12em] text-sand uppercase">
-            Just launched
+            NEW
           </span>
         )}
       </Link>
@@ -92,10 +92,8 @@ export function ProductGrid({
       ? products
       : products.filter((p) => p.collection === filter)
     : products;
-  const launchedProduct = shown.find((product) => product.slug === launchedProductSlug);
-  const ordered = launchedProduct
-    ? [launchedProduct, ...shown.filter((product) => product.slug !== launchedProductSlug)]
-    : shown;
+  const featured = featuredProductSlugs.flatMap((slug) => shown.filter((product) => product.slug === slug));
+  const ordered = [...featured, ...shown.filter((product) => !featuredProductSlugs.includes(product.slug))];
 
   const chips: Filter[] = ["all", "signature", "tide"];
 
