@@ -365,5 +365,13 @@
     { "file": "06.png", "kind": "graphic" },
     { "file": "07.png", "kind": "graphic" },
     { "file": "08.png", "kind": "graphic" }
+  ],
+  "still-within": [
+    { "file": "01.webp", "kind": "photo" },
+    { "file": "02.webp", "kind": "photo" },
+    { "file": "03-updated.webp", "kind": "photo" },
+    { "file": "05-updated.webp", "kind": "photo" },
+    { "file": "closeup-01.jpeg", "kind": "photo" },
+    { "file": "closeup-02.jpeg", "kind": "photo" }
   ]
 }

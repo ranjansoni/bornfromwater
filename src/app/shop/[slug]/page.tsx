@@ -44,11 +44,21 @@ export default async function ProductPage({ params }: Params) {
   if (product.collection === "tide" && !TIDE_LIVE) notFound();
 
   const related = products.filter(p => p.slug !== slug).slice(0, 3);
+  const story = product.story;
+  const storyParagraphCount = story?.paragraphs.length ?? 0;
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
 
   const specs = [
-    { label: "Metal", value: "14k gold-filled" },
-    { label: "Stone", value: `${product.stone}, genuine` },
+    ...(product.slug === "still-within"
+      ? [
+          { label: "Charm", value: "14k gold-filled, shell-inspired" },
+          { label: "Pearl", value: "One pearl" },
+          { label: "Chain & clasp", value: "14k gold-filled" },
+        ]
+      : [
+          { label: "Metal", value: "14k gold-filled" },
+          { label: "Stone", value: `${product.stone}, genuine` },
+        ]),
     {
       label: "Sizing",
       value: "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
@@ -75,7 +85,6 @@ export default async function ProductPage({ params }: Params) {
     },
   };
 
-  const story = product.story;
   const storySection = story ? (
     <div className="rule-t w-full pt-5">
       <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">The story</p>
@@ -83,17 +92,21 @@ export default async function ProductPage({ params }: Params) {
         {story.title}
       </h2>
       {story.paragraphs.map((para, index) => {
-        const [beforeName, afterName] = para.split("Pearl Drift");
+        const isStillWithin = product.slug === "still-within";
         const isPearlDrift = product.slug === "pearl-drift";
-        const italic = isPearlDrift && index === 0;
-        const bold = isPearlDrift && index === story.paragraphs.length - 1;
+        const italic = (isStillWithin || isPearlDrift) && index === 0;
+        const bold = isStillWithin && index === 1 ||
+          isPearlDrift && index === storyParagraphCount - 1;
+        const [beforeName, afterName] = para.split("Pearl Drift");
 
         return (
           <p
             key={para.slice(0, 24)}
             className={`mt-3 max-w-[52ch] text-[16px] leading-[1.65] ${italic ? "italic" : bold ? "font-extrabold" : ""}`}
           >
-            {isPearlDrift && index === 3 && afterName !== undefined
+            {isStillWithin && index === 2
+              ? <><em>Still Within</em>{para.slice("Still Within".length)}</>
+              : isPearlDrift && index === 3 && afterName !== undefined
               ? <>{beforeName}<strong>Pearl Drift</strong>{afterName}</>
               : para}
           </p>
@@ -193,7 +206,7 @@ export default async function ProductPage({ params }: Params) {
             ))}
           </dl>
 
-          {product.slug === "pearl-drift" && storySection ? storySection : (
+          {product.slug !== "still-within" && (product.slug === "pearl-drift" && storySection ? storySection : (
             <div className="rule-t w-full pt-5">
               <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
                 The stone
@@ -202,7 +215,7 @@ export default async function ProductPage({ params }: Params) {
                 {product.meaning}
               </p>
             </div>
-          )}
+          ))}
         </div>
       </section>
 

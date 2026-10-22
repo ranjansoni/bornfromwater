@@ -1,0 +1,21 @@
+-- Add Still Within without changing owner-edited catalogue rows or orders.
+BEGIN;
+INSERT INTO catalog_products (slug, sku, name, collection, stone, price_cents, blurb, description, meaning, story, images, active, placeholder, sort_order) VALUES
+(
+  'still-within',
+  'BFW-STILL-WITHIN',
+  'Still Within Bracelet',
+  'tide',
+  'Pearl',
+  5200,
+  'A quiet place within, held close in gold and pearl.',
+  'Still Within is a delicate bracelet with a 14k gold-filled shell-inspired charm, one pearl, and a 14k gold-filled chain and clasp. A reminder that peace can be found within, even when the world feels chaotic.',
+  $meaning$A gentle reminder that peace isn't always found around us. Sometimes, it's found within.$meaning$,
+  $story${"title":"STILL WITHIN 🐚","paragraphs":["Even when the world turns upside down, there is a quiet place within you.","The ocean symbolizes life's chaos, the shell our sanctuary, and the pearl the peace we carry within.","Still Within is a gentle reminder that no matter how turbulent the world becomes, there is always a quiet place within us to retreat to.","The waves may rise. The tides may turn. The world may feel chaotic.","But somewhere beneath it all, there is stillness.","A gentle reminder that peace isn't always found around us. Sometimes, it's found within."]}$story$::jsonb,
+  $images$[{"src":"/products/still-within/01.webp","kind":"photo"},{"src":"/products/still-within/02.webp","kind":"photo"},{"src":"/products/still-within/03-updated.webp","kind":"photo"},{"src":"/products/still-within/05-updated.webp","kind":"photo"},{"src":"/products/still-within/closeup-01.jpeg","kind":"photo"},{"src":"/products/still-within/closeup-02.jpeg","kind":"photo"}]$images$::jsonb,
+  true,
+  false,
+  9
+)
+ON CONFLICT (slug) DO NOTHING;
+COMMIT;

@@ -120,6 +120,30 @@
     "images": []
   },
   {
+    "slug": "still-within",
+    "name": "Still Within Bracelet",
+    "collection": "tide",
+    "stone": "Pearl",
+    "price": "CA$52.00",
+    "priceCents": 5200,
+    "sku": "BFW-STILL-WITHIN",
+    "blurb": "A quiet place within, held close in gold and pearl.",
+    "description": "Still Within is a delicate bracelet with a 14k gold-filled shell-inspired charm, one pearl, and a 14k gold-filled chain and clasp. A reminder that peace can be found within, even when the world feels chaotic.",
+    "story": {
+      "title": "STILL WITHIN 🐚",
+      "paragraphs": [
+        "Even when the world turns upside down, there is a quiet place within you.",
+        "The ocean symbolizes life's chaos, the shell our sanctuary, and the pearl the peace we carry within.",
+        "Still Within is a gentle reminder that no matter how turbulent the world becomes, there is always a quiet place within us to retreat to.",
+        "The waves may rise. The tides may turn. The world may feel chaotic.",
+        "But somewhere beneath it all, there is stillness.",
+        "A gentle reminder that peace isn't always found around us. Sometimes, it's found within."
+      ]
+    },
+    "meaning": "A gentle reminder that peace isn't always found around us. Sometimes, it's found within.",
+    "images": []
+  },
+  {
     "slug": "pearl-drift",
     "name": "Pearl Drift Bracelet",
     "collection": "tide",
