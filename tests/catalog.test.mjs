@@ -19,6 +19,7 @@ await db.exec(await readFile(new URL('../src/db/schema.sql', import.meta.url), '
 const migration = await readFile(new URL('../src/db/migrations/006-product-catalog.sql', import.meta.url), 'utf8');
 const pearlMigration = await readFile(new URL('../src/db/migrations/007-pearl-drift.sql', import.meta.url), 'utf8');
 const pearlStoryMigration = await readFile(new URL('../src/db/migrations/009-pearl-drift-story.sql', import.meta.url), 'utf8');
+const aquamarineGalleryMigration = await readFile(new URL('../src/db/migrations/010-aquamarine-gallery.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -32,7 +33,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(pearlStoryMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -62,6 +63,14 @@ test('Pearl Drift story migration leaves an owner-edited story unchanged', async
   await db.query("UPDATE catalog_products SET story = '{\"title\":\"Owner story\",\"paragraphs\":[\"Personal copy\"]}'::jsonb WHERE slug = 'pearl-drift'");
   await db.exec(pearlStoryMigration);
   assert.equal((await catalog.get('pearl-drift')).story.title, 'Owner story');
+});
+test('Aquamarine Tide gallery removes only positions 2, 5 and 9', async () => {
+  const product = await catalog.get('aquamarine-tide');
+  assert.deepEqual(product.images.map(image => image.src),
+    [1, 3, 4, 6, 7, 8, 10, 11].map(n => `/products/aquamarine-tide/${String(n).padStart(2, '0')}.jpg`));
+  assert.equal(product.priceCents, 4900);
+  await db.exec(aquamarineGalleryMigration);
+  assert.equal((await catalog.get('aquamarine-tide')).version, product.version);
 });
 test('repeatable migration preserves owner edits, photos, historical and pending orders', async () => {
   const cart = validateCart([{ slug: original.slug, quantity: 1 }], await catalog.list());
