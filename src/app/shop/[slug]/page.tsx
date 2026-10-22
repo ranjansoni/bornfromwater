@@ -206,16 +206,16 @@ export default async function ProductPage({ params }: Params) {
             ))}
           </dl>
 
-          {product.slug === "pearl-drift" && storySection ? storySection : (
+          {product.slug !== "still-within" && (product.slug === "pearl-drift" && storySection ? storySection : (
             <div className="rule-t w-full pt-5">
               <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-                {product.slug === "still-within" ? "The meaning" : "The stone"}
+                The stone
               </p>
               <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
                 {product.meaning}
               </p>
             </div>
-          )}
+          ))}
         </div>
       </section>
 
