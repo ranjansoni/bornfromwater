@@ -44,7 +44,8 @@ export default async function ProductPage({ params }: Params) {
   if (product.collection === "tide" && !TIDE_LIVE) notFound();
 
   const related = products.filter(p => p.slug !== slug).slice(0, 3);
-  const storyParagraphCount = product.story?.paragraphs.length ?? 0;
+  const story = product.story;
+  const storyParagraphCount = story?.paragraphs.length ?? 0;
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
 
   const specs = [
@@ -83,6 +84,35 @@ export default async function ProductPage({ params }: Params) {
       availability: product.placeholder ? "https://schema.org/PreOrder" : "https://schema.org/InStock",
     },
   };
+
+  const storySection = story ? (
+    <div className="rule-t w-full pt-5">
+      <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">The story</p>
+      <h2 className="mt-3 max-w-[24ch] text-[22px] font-extrabold tracking-[-0.02em]">
+        {story.title}
+      </h2>
+      {story.paragraphs.map((para, index) => {
+        const isStillWithin = product.slug === "still-within";
+        const isPearlDrift = product.slug === "pearl-drift";
+        const italic = (isStillWithin || isPearlDrift) && index === 0 ||
+          isStillWithin && index === storyParagraphCount - 1;
+        const bold = isStillWithin && index === storyParagraphCount - 2 ||
+          isPearlDrift && index === storyParagraphCount - 1;
+        const [beforeName, afterName] = para.split("Pearl Drift");
+
+        return (
+          <p
+            key={para.slice(0, 24)}
+            className={`mt-3 max-w-[52ch] text-[16px] leading-[1.65] ${italic ? "italic" : bold ? "font-extrabold" : ""}`}
+          >
+            {isPearlDrift && index === 3 && afterName !== undefined
+              ? <>{beforeName}<strong>Pearl Drift</strong>{afterName}</>
+              : para}
+          </p>
+        );
+      })}
+    </div>
+  ) : null;
 
   return (
     <>
@@ -151,34 +181,11 @@ export default async function ProductPage({ params }: Params) {
             </p>
           )}
           {/* Product story and details follow the purchase information. */}
-          {product.story ? (
-            <div className="rule-t w-full pt-5">
-              <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-                The story
-              </p>
-              <h2 className="mt-3 max-w-[24ch] text-[22px] font-extrabold tracking-[-0.02em]">
-                {product.story.title}
-              </h2>
-              {product.story.paragraphs.map((para, index) => (
-                <p
-                  key={para.slice(0, 24)}
-                  className={`mt-3 max-w-[52ch] text-[16px] leading-[1.65] ${
-                    product.slug === "still-within" && (index === 0 || index === storyParagraphCount - 1)
-                      ? "italic"
-                      : product.slug === "still-within" && index === storyParagraphCount - 2
-                        ? "font-extrabold"
-                        : ""
-                  }`}
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
-          ) : product.slug !== "pearl-drift" ? (
+          {product.slug !== "pearl-drift" && (storySection ?? (
             <p className="max-w-[52ch] text-[16px] leading-[1.6]">
               {product.description}
             </p>
-          ) : null}
+          ))}
 
           <dl className="rule-t w-full">
             {specs.map((s, i) => (
@@ -198,14 +205,16 @@ export default async function ProductPage({ params }: Params) {
             ))}
           </dl>
 
-          <div className="rule-t w-full pt-5">
-            <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-              {product.slug === "still-within" ? "The meaning" : "The stone"}
-            </p>
-            <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
-              {product.meaning}
-            </p>
-          </div>
+          {product.slug === "pearl-drift" && storySection ? storySection : (
+            <div className="rule-t w-full pt-5">
+              <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
+                {product.slug === "still-within" ? "The meaning" : "The stone"}
+              </p>
+              <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
+                {product.meaning}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
