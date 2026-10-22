@@ -374,8 +374,6 @@
     { "file": "01.webp", "kind": "photo" },
     { "file": "02.webp", "kind": "photo" },
     { "file": "03-updated.webp", "kind": "photo" },
-    { "file": "04-updated.webp", "kind": "photo" },
-    { "file": "05-updated.webp", "kind": "photo" },
-    { "file": "06.webp", "kind": "photo" }
+    { "file": "05-updated.webp", "kind": "photo" }
   ]
 }
