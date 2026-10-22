@@ -20,6 +20,7 @@ const migration = await readFile(new URL('../src/db/migrations/006-product-catal
 const pearlMigration = await readFile(new URL('../src/db/migrations/007-pearl-drift.sql', import.meta.url), 'utf8');
 const pearlStoryMigration = await readFile(new URL('../src/db/migrations/009-pearl-drift-story.sql', import.meta.url), 'utf8');
 const aquamarineGalleryMigration = await readFile(new URL('../src/db/migrations/010-aquamarine-gallery.sql', import.meta.url), 'utf8');
+const amethystGalleryMigration = await readFile(new URL('../src/db/migrations/011-amethyst-gallery.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -33,7 +34,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -71,6 +72,15 @@ test('Aquamarine Tide gallery removes only positions 2, 5 and 9', async () => {
   assert.equal(product.priceCents, 4900);
   await db.exec(aquamarineGalleryMigration);
   assert.equal((await catalog.get('aquamarine-tide')).version, product.version);
+});
+test('Amethyst Tide gallery removes only the 11th image', async () => {
+  const product = await catalog.get('amethyst-tide');
+  assert.deepEqual(product.images.map(image => image.src),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
+      .map(n => `/products/amethyst-tide/${String(n).padStart(2, '0')}.jpg`));
+  assert.equal(product.priceCents, 4900);
+  await db.exec(amethystGalleryMigration);
+  assert.equal((await catalog.get('amethyst-tide')).version, product.version);
 });
 test('repeatable migration preserves owner edits, photos, historical and pending orders', async () => {
   const cart = validateCart([{ slug: original.slug, quantity: 1 }], await catalog.list());
