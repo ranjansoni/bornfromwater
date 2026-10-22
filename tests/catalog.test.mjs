@@ -18,6 +18,7 @@ const db = new PGlite();
 await db.exec(await readFile(new URL('../src/db/schema.sql', import.meta.url), 'utf8'));
 const migration = await readFile(new URL('../src/db/migrations/006-product-catalog.sql', import.meta.url), 'utf8');
 const pearlMigration = await readFile(new URL('../src/db/migrations/007-pearl-drift.sql', import.meta.url), 'utf8');
+const stillWithinMigration = await readFile(new URL('../src/db/migrations/008-still-within.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -31,7 +32,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -54,6 +55,17 @@ test('Pearl Drift is purchasable for CA$62 and its migration preserves owner edi
   await db.query("UPDATE catalog_products SET name = 'Owner wording' WHERE slug = 'pearl-drift'");
   await db.exec(pearlMigration);
   assert.equal((await catalog.get('pearl-drift')).name, 'Owner wording');
+});
+test('Still Within is purchasable for CA$52 and its migration preserves owner edits', async () => {
+  const product = await catalog.get('still-within');
+  assert.equal(product.priceCents, 5200);
+  assert.equal(product.collection, 'tide');
+  assert.equal(product.images.length, 6);
+  assert.equal(product.story.title, 'STILL WITHIN 🐚');
+  assert.equal(validateCart([{ slug: product.slug, quantity: 1 }], await catalog.list()).totalCents, 5200);
+  await db.query("UPDATE catalog_products SET name = 'Owner wording' WHERE slug = 'still-within'");
+  await db.exec(stillWithinMigration);
+  assert.equal((await catalog.get('still-within')).name, 'Owner wording');
 });
 test('repeatable migration preserves owner edits, photos, historical and pending orders', async () => {
   const cart = validateCart([{ slug: original.slug, quantity: 1 }], await catalog.list());

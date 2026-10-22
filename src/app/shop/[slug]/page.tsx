@@ -44,11 +44,20 @@ export default async function ProductPage({ params }: Params) {
   if (product.collection === "tide" && !TIDE_LIVE) notFound();
 
   const related = products.filter(p => p.slug !== slug).slice(0, 3);
+  const storyParagraphCount = product.story?.paragraphs.length ?? 0;
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
 
   const specs = [
-    { label: "Metal", value: "14k gold-filled" },
-    { label: "Stone", value: `${product.stone}, genuine` },
+    ...(product.slug === "still-within"
+      ? [
+          { label: "Charm", value: "14k gold-filled, shell-inspired" },
+          { label: "Pearl", value: "One pearl" },
+          { label: "Chain & clasp", value: "14k gold-filled" },
+        ]
+      : [
+          { label: "Metal", value: "14k gold-filled" },
+          { label: "Stone", value: `${product.stone}, genuine` },
+        ]),
     {
       label: "Sizing",
       value: "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
@@ -150,10 +159,16 @@ export default async function ProductPage({ params }: Params) {
               <h2 className="mt-3 max-w-[24ch] text-[22px] font-extrabold tracking-[-0.02em]">
                 {product.story.title}
               </h2>
-              {product.story.paragraphs.map((para) => (
+              {product.story.paragraphs.map((para, index) => (
                 <p
                   key={para.slice(0, 24)}
-                  className="mt-3 max-w-[52ch] text-[16px] leading-[1.65]"
+                  className={`mt-3 max-w-[52ch] text-[16px] leading-[1.65] ${
+                    product.slug === "still-within" && (index === 0 || index === storyParagraphCount - 1)
+                      ? "italic"
+                      : product.slug === "still-within" && index === storyParagraphCount - 2
+                        ? "font-extrabold"
+                        : ""
+                  }`}
                 >
                   {para}
                 </p>
@@ -185,7 +200,7 @@ export default async function ProductPage({ params }: Params) {
 
           <div className="rule-t w-full pt-5">
             <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-              The stone
+              {product.slug === "still-within" ? "The meaning" : "The stone"}
             </p>
             <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
               {product.meaning}
