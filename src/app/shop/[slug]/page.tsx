@@ -75,6 +75,33 @@ export default async function ProductPage({ params }: Params) {
     },
   };
 
+  const story = product.story;
+  const storySection = story ? (
+    <div className="rule-t w-full pt-5">
+      <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">The story</p>
+      <h2 className="mt-3 max-w-[24ch] text-[22px] font-extrabold tracking-[-0.02em]">
+        {story.title}
+      </h2>
+      {story.paragraphs.map((para, index) => {
+        const [beforeName, afterName] = para.split("Pearl Drift");
+        const isPearlDrift = product.slug === "pearl-drift";
+        const italic = isPearlDrift && index === 0;
+        const bold = isPearlDrift && index === story.paragraphs.length - 1;
+
+        return (
+          <p
+            key={para.slice(0, 24)}
+            className={`mt-3 max-w-[52ch] text-[16px] leading-[1.65] ${italic ? "italic" : bold ? "font-extrabold" : ""}`}
+          >
+            {isPearlDrift && index === 3 && afterName !== undefined
+              ? <>{beforeName}<strong>Pearl Drift</strong>{afterName}</>
+              : para}
+          </p>
+        );
+      })}
+    </div>
+  ) : null;
+
   return (
     <>
       <script
@@ -142,28 +169,11 @@ export default async function ProductPage({ params }: Params) {
             </p>
           )}
           {/* Product story and details follow the purchase information. */}
-          {product.story ? (
-            <div className="rule-t w-full pt-5">
-              <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-                The story
-              </p>
-              <h2 className="mt-3 max-w-[24ch] text-[22px] font-extrabold tracking-[-0.02em]">
-                {product.story.title}
-              </h2>
-              {product.story.paragraphs.map((para) => (
-                <p
-                  key={para.slice(0, 24)}
-                  className="mt-3 max-w-[52ch] text-[16px] leading-[1.65]"
-                >
-                  {para}
-                </p>
-              ))}
-            </div>
-          ) : product.slug !== "pearl-drift" ? (
+          {product.slug !== "pearl-drift" && (storySection ?? (
             <p className="max-w-[52ch] text-[16px] leading-[1.6]">
               {product.description}
             </p>
-          ) : null}
+          ))}
 
           <dl className="rule-t w-full">
             {specs.map((s, i) => (
@@ -183,14 +193,16 @@ export default async function ProductPage({ params }: Params) {
             ))}
           </dl>
 
-          <div className="rule-t w-full pt-5">
-            <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-              The stone
-            </p>
-            <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
-              {product.meaning}
-            </p>
-          </div>
+          {product.slug === "pearl-drift" && storySection ? storySection : (
+            <div className="rule-t w-full pt-5">
+              <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
+                The stone
+              </p>
+              <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
+                {product.meaning}
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
