@@ -94,9 +94,8 @@ export default async function ProductPage({ params }: Params) {
       {story.paragraphs.map((para, index) => {
         const isStillWithin = product.slug === "still-within";
         const isPearlDrift = product.slug === "pearl-drift";
-        const italic = (isStillWithin || isPearlDrift) && index === 0 ||
-          isStillWithin && index === storyParagraphCount - 1;
-        const bold = isStillWithin && index === storyParagraphCount - 2 ||
+        const italic = (isStillWithin || isPearlDrift) && index === 0;
+        const bold = isStillWithin && index === 1 ||
           isPearlDrift && index === storyParagraphCount - 1;
         const [beforeName, afterName] = para.split("Pearl Drift");
 
@@ -105,7 +104,9 @@ export default async function ProductPage({ params }: Params) {
             key={para.slice(0, 24)}
             className={`mt-3 max-w-[52ch] text-[16px] leading-[1.65] ${italic ? "italic" : bold ? "font-extrabold" : ""}`}
           >
-            {isPearlDrift && index === 3 && afterName !== undefined
+            {isStillWithin && index === 2
+              ? <><em>Still Within</em>{para.slice("Still Within".length)}</>
+              : isPearlDrift && index === 3 && afterName !== undefined
               ? <>{beforeName}<strong>Pearl Drift</strong>{afterName}</>
               : para}
           </p>
