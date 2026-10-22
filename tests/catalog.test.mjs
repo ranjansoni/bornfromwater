@@ -61,6 +61,7 @@ test('Still Within is purchasable for CA$52 and its migration preserves owner ed
   assert.equal(product.priceCents, 5200);
   assert.equal(product.collection, 'tide');
   assert.equal(product.images.length, 6);
+  assert.equal(product.images[2].src, '/products/still-within/03-updated.webp');
   assert.equal(product.story.title, 'STILL WITHIN 🐚');
   assert.equal(validateCart([{ slug: product.slug, quantity: 1 }], await catalog.list()).totalCents, 5200);
   await db.query("UPDATE catalog_products SET name = 'Owner wording' WHERE slug = 'still-within'");
