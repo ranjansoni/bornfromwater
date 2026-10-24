@@ -24,6 +24,7 @@ const aquamarineGalleryMigration = await readFile(new URL('../src/db/migrations/
 const amethystGalleryMigration = await readFile(new URL('../src/db/migrations/011-amethyst-gallery.sql', import.meta.url), 'utf8');
 const stillWithinGalleryMigration = await readFile(new URL('../src/db/migrations/012-still-within-gallery.sql', import.meta.url), 'utf8');
 const stillWithinGiftBoxMigration = await readFile(new URL('../src/db/migrations/013-still-within-gift-box.sql', import.meta.url), 'utf8');
+const pearlGalleryMigration = await readFile(new URL('../src/db/migrations/014-pearl-drift-gallery.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -37,7 +38,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -54,14 +55,22 @@ test('Pearl Drift is purchasable for CA$62 and its migration preserves owner edi
   const pearl = await catalog.get('pearl-drift');
   assert.equal(pearl.priceCents, 6200);
   assert.equal(pearl.collection, 'tide');
-  assert.equal(pearl.images.length, 8);
+  assert.equal(pearl.images.length, 10);
   assert.equal(pearl.images[0].src, '/products/pearl-drift/01.jpg');
+  assert.deepEqual(pearl.images.slice(3, 6).map(image => image.src), [
+    '/products/pearl-drift/plaster-hand-01.png',
+    '/products/pearl-drift/plaster-hand-02.png',
+    '/products/pearl-drift/plaster-hand-03.png',
+  ]);
+  assert.equal(pearl.images[6].src, '/products/pearl-drift/05.png');
   assert.equal(pearl.story.title, 'Pearl Drift');
   assert.equal(pearl.story.paragraphs.length, 5);
   assert.equal(validateCart([{ slug: pearl.slug, quantity: 1 }], await catalog.list()).totalCents, 6200);
   await db.query("UPDATE catalog_products SET name = 'Owner wording' WHERE slug = 'pearl-drift'");
   await db.exec(pearlMigration);
+  await db.exec(pearlGalleryMigration);
   assert.equal((await catalog.get('pearl-drift')).name, 'Owner wording');
+  assert.equal((await catalog.get('pearl-drift')).version, pearl.version);
 });
 test('Pearl Drift story migration leaves an owner-edited story unchanged', async () => {
   await db.query("UPDATE catalog_products SET story = '{\"title\":\"Owner story\",\"paragraphs\":[\"Personal copy\"]}'::jsonb WHERE slug = 'pearl-drift'");
