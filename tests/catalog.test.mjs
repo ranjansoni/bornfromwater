@@ -23,6 +23,7 @@ const pearlStoryMigration = await readFile(new URL('../src/db/migrations/009-pea
 const aquamarineGalleryMigration = await readFile(new URL('../src/db/migrations/010-aquamarine-gallery.sql', import.meta.url), 'utf8');
 const amethystGalleryMigration = await readFile(new URL('../src/db/migrations/011-amethyst-gallery.sql', import.meta.url), 'utf8');
 const stillWithinGalleryMigration = await readFile(new URL('../src/db/migrations/012-still-within-gallery.sql', import.meta.url), 'utf8');
+const stillWithinGiftBoxMigration = await readFile(new URL('../src/db/migrations/013-still-within-gift-box.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -36,7 +37,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -71,19 +72,21 @@ test('Still Within is purchasable for CA$52 and its migration preserves owner ed
   const product = await catalog.get('still-within');
   assert.equal(product.priceCents, 5200);
   assert.equal(product.collection, 'tide');
-  assert.equal(product.images.length, 8);
+  assert.equal(product.images.length, 9);
   assert.equal(product.images[2].src, '/products/still-within/03-updated.webp');
   assert.equal(product.images[3].src, '/products/still-within/05-updated.webp');
   assert.equal(product.images[4].src, '/products/still-within/closeup-01.jpeg');
   assert.equal(product.images[5].src, '/products/still-within/closeup-02.jpeg');
   assert.equal(product.images[6].src, '/products/still-within/ceramic-hand-01.png');
   assert.equal(product.images[7].src, '/products/still-within/ceramic-hand-02.png');
+  assert.equal(product.images[8].src, '/products/still-within/gift-box.png');
   assert.equal(product.story.title, 'STILL WITHIN 🐚');
   assert.equal(validateCart([{ slug: product.slug, quantity: 1 }], await catalog.list()).totalCents, 5200);
   await db.query("UPDATE catalog_products SET name = 'Owner wording' WHERE slug = 'still-within'");
   await db.exec(stillWithinMigration);
   assert.equal((await catalog.get('still-within')).name, 'Owner wording');
   await db.exec(stillWithinGalleryMigration);
+  await db.exec(stillWithinGiftBoxMigration);
   assert.equal((await catalog.get('still-within')).version, product.version);
 });
 test('Aquamarine Tide gallery removes only positions 2, 5 and 9', async () => {
