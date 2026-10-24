@@ -372,6 +372,8 @@
     { "file": "03-updated.webp", "kind": "photo" },
     { "file": "05-updated.webp", "kind": "photo" },
     { "file": "closeup-01.jpeg", "kind": "photo" },
-    { "file": "closeup-02.jpeg", "kind": "photo" }
+    { "file": "closeup-02.jpeg", "kind": "photo" },
+    { "file": "ceramic-hand-01.png", "kind": "photo" },
+    { "file": "ceramic-hand-02.png", "kind": "photo" }
   ]
 }
