@@ -52,7 +52,7 @@ export default async function ProductPage({ params }: Params) {
     ...(product.slug === "pearl-drift"
       ? [
           { label: "Metal", value: "Genuine 14K Gold-Filled — Not Gold-Plated" },
-          { label: "Pearls", value: "Natural Freshwater Pearls" },
+          { label: "Pearls", value: "High Quality Natural Genuine Freshwater Round 5mm" },
         ]
       : product.slug === "still-within"
       ? [
