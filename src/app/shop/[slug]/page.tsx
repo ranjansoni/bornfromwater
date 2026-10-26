@@ -47,7 +47,10 @@ export default async function ProductPage({ params }: Params) {
   const story = product.story;
   const storyParagraphCount = story?.paragraphs.length ?? 0;
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
-  const pearlDetail = "High Quality Natural Genuine Freshwater Round 5mm";
+  const pearlDetail = "Natural freshwater pearl";
+  const stoneDetail = product.collection === "tide"
+    ? product.stone.replace(/ \+ freshwater pearl$/i, "")
+    : product.stone;
 
   const specs = [
     { label: "Metal", value: "Genuine 14K Gold-Filled — Not Gold-Plated" },
@@ -62,7 +65,8 @@ export default async function ProductPage({ params }: Params) {
           { label: "Chain & clasp", value: "14k gold-filled" },
         ]
       : [
-          { label: "Stone", value: `${product.stone}, genuine` },
+          { label: "Stone", value: `${stoneDetail}, genuine` },
+          ...(product.collection === "tide" ? [{ label: "Pearl", value: pearlDetail }] : []),
         ]),
     {
       label: "Sizing",
