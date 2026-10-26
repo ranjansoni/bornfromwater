@@ -186,6 +186,38 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="rule-b grid grid-cols-1 md:grid-cols-2" aria-labelledby="out-in-the-world-title">
+        <div className="flex flex-col justify-center px-6 py-12 md:px-12 md:py-16 md:rule-r">
+          <p className="text-[12px] font-extrabold tracking-[0.16em] text-accent-700 uppercase">
+            ♡ Out in the World
+          </p>
+          <h2 id="out-in-the-world-title" className="mt-5 max-w-[19ch] text-[34px] leading-[1.08] font-extrabold tracking-[-0.025em] md:text-[48px]">
+            A little piece of Born From Water, out in the world.
+          </h2>
+          <p className="mt-6 max-w-[42ch] text-[17px] leading-[1.65] text-mid italic">
+            From our hands to yours. A glimpse of Born From Water in everyday moments.
+          </p>
+        </div>
+        <figure className="flex flex-col items-center px-6 py-10 md:px-12 md:py-14">
+          <Link href="/shop/amethyst-tide" className="block w-full max-w-[440px]">
+            <Image
+              src="/site/out-in-the-world-amethyst-tide.jpg"
+              alt="Amethyst Tide bracelet with a freshwater pearl and purple gemstones worn on a wrist"
+              width={1200}
+              height={1600}
+              sizes="(max-width: 768px) 100vw, 440px"
+              className="h-auto w-full"
+            />
+          </Link>
+          <figcaption className="mt-4 flex w-full max-w-[440px] flex-wrap items-center justify-between gap-3 text-[12px] font-extrabold tracking-[0.1em] uppercase">
+            <span>01 / Amethyst Tide bracelet</span>
+            <Link href="/shop/amethyst-tide" className="text-accent-700 hover:underline">
+              View the piece →
+            </Link>
+          </figcaption>
+        </figure>
+      </section>
+
       <section className="rule-b grid grid-cols-1 md:grid-cols-[1fr_1.1fr]">
         <div className="relative w-full min-w-0 md:rule-r">
           <div className="relative min-h-[500px] w-full overflow-hidden md:sticky md:top-0 md:h-[760px] md:min-h-0">
