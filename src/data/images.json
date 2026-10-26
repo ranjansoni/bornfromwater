@@ -357,6 +357,7 @@
     { "file": "16.jpg", "kind": "photo" }
   ],
   "pearl-drift": [
+    { "file": "06.png", "kind": "photo" },
     { "file": "01.jpg", "kind": "photo" },
     { "file": "02.jpg", "kind": "photo" },
     { "file": "03.jpg", "kind": "photo" },
@@ -364,7 +365,6 @@
     { "file": "plaster-hand-02.png", "kind": "photo" },
     { "file": "plaster-hand-03.png", "kind": "photo" },
     { "file": "05.png", "kind": "graphic" },
-    { "file": "06.png", "kind": "graphic" },
     { "file": "07.png", "kind": "graphic" },
     { "file": "08.png", "kind": "graphic" }
   ],
