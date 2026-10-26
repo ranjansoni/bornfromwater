@@ -81,7 +81,8 @@ export default async function Home() {
       </section>
 
       <div id="shop" className="scroll-mt-6">
-        <ProductGrid products={liveProducts} filterable={TIDE_LIVE} heading="Find your everyday piece" />
+        <ProductGrid products={liveProducts} filterable={TIDE_LIVE} heading="Find your everyday piece"
+          showFullImages />
       </div>
 
       {/* Collection split */}

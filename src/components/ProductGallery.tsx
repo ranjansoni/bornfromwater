@@ -4,7 +4,11 @@ import Image from "next/image";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ProductImage } from "@/lib/products";
 
-export function ProductGallery({ name, images }: { name: string; images: ProductImage[] }) {
+export function ProductGallery({ name, images, containPrimary = false }: {
+  name: string;
+  images: ProductImage[];
+  containPrimary?: boolean;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const [active, setActive] = useState(0);
@@ -36,8 +40,11 @@ export function ProductGallery({ name, images }: { name: string; images: Product
     <div className="md:rule-r">
       {primary ? (
         <button type="button" onClick={() => open(0)} aria-label={`Enlarge ${description(0)}`}
-          aria-haspopup="dialog" className="rule-b relative block aspect-square w-full cursor-zoom-in overflow-hidden bg-surface">
-          <Image src={primary.src} alt={name} fill priority sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" />
+          aria-haspopup="dialog" className={`rule-b relative block w-full cursor-zoom-in overflow-hidden bg-surface ${
+            containPrimary ? "aspect-square md:aspect-auto md:h-[min(70vh,680px)]" : "aspect-square"
+          }`}>
+          <Image src={primary.src} alt={name} fill priority sizes="(max-width: 768px) 100vw, 50vw"
+            className={containPrimary ? "object-contain" : "object-cover"} />
         </button>
       ) : (
         <div className="rule-b flex aspect-square w-full flex-col items-center justify-center gap-3 bg-accent-100 px-6 text-center">

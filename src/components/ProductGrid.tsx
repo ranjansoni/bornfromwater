@@ -14,7 +14,7 @@ const headings: Record<Filter, string> = {
   tide: "Tide Collection",
 };
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, showFullImage = false }: { product: Product; showFullImage?: boolean }) {
   const img = cardImage(product);
   const isNew = featuredProductSlugs.includes(product.slug) && product.active && !product.placeholder;
 
@@ -30,7 +30,7 @@ export function ProductCard({ product }: { product: Product }) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
+            className={showFullImage ? "object-contain p-5" : "object-cover"}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-accent-100 px-6 text-center">
@@ -79,11 +79,13 @@ export function ProductGrid({
   filterable = false,
   initialFilter = "all",
   heading,
+  showFullImages = false,
 }: {
   products: Product[];
   filterable?: boolean;
   initialFilter?: Filter;
   heading?: string;
+  showFullImages?: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>(initialFilter);
 
@@ -129,7 +131,7 @@ export function ProductGrid({
 
       <div className="grid grid-cols-1 gap-x-8 gap-y-10 pt-10 sm:grid-cols-2 lg:grid-cols-3">
         {ordered.map((p) => (
-          <ProductCard key={p.slug} product={p} />
+          <ProductCard key={p.slug} product={p} showFullImage={showFullImages} />
         ))}
       </div>
     </section>

@@ -141,7 +141,8 @@ export default async function ProductPage({ params }: Params) {
 
       <section className="rule-b grid grid-cols-1 md:grid-cols-2">
         {/* Gallery — every approved product image in catalogue order. */}
-        <ProductGallery key={product.slug} name={product.name} images={product.images} />
+        <ProductGallery key={product.slug} name={product.name} images={product.images}
+          containPrimary={product.slug === "still-within"} />
 
         {/* Galleries run 9–14 images deep, so the buy panel sticks rather than
             stranding the reader beside a column of photographs. */}
