@@ -49,7 +49,12 @@ export default async function ProductPage({ params }: Params) {
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
 
   const specs = [
-    ...(product.slug === "still-within"
+    ...(product.slug === "pearl-drift"
+      ? [
+          { label: "Metal", value: "Genuine 14K Gold-Filled — Not Gold-Plated" },
+          { label: "Pearls", value: "Natural Freshwater Pearls" },
+        ]
+      : product.slug === "still-within"
       ? [
           { label: "Charm", value: "14k gold-filled, shell-inspired" },
           { label: "Pearl", value: "One pearl" },
@@ -61,7 +66,9 @@ export default async function ProductPage({ params }: Params) {
         ]),
     {
       label: "Sizing",
-      value: "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
+      value: product.slug === "pearl-drift"
+        ? "6.5″ Small · 7″ Standard · 7.5″ Large"
+        : "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
     },
   ];
 
@@ -191,21 +198,21 @@ export default async function ProductPage({ params }: Params) {
             {specs.map((s, i) => (
               <div
                 key={s.label}
-                className={`grid grid-cols-1 gap-4 py-3 sm:grid-cols-[170px_1fr] ${
+                className={`grid grid-cols-1 py-3 sm:grid-cols-[170px_1fr] ${product.slug === "pearl-drift" ? "gap-2" : "gap-4"} ${
                   i < specs.length - 1
                     ? "border-b border-surface"
-                    : "rule-b"
+                    : product.slug === "pearl-drift" ? "" : "rule-b"
                 }`}
               >
-                <dt className="text-[11px] tracking-[0.1em] text-mid uppercase">
+                <dt className={`tracking-[0.1em] text-mid uppercase ${product.slug === "pearl-drift" ? "text-[12px]" : "text-[11px]"}`}>
                   {s.label}
                 </dt>
-                <dd className="text-[14px]">{s.value}</dd>
+                <dd className={product.slug === "pearl-drift" ? "text-[18px] leading-snug" : "text-[14px]"}>{s.value}</dd>
               </div>
             ))}
           </dl>
 
-          <div className="flex w-full flex-col items-center py-7 text-center">
+          {product.slug !== "pearl-drift" && <div className="flex w-full flex-col items-center py-7 text-center">
             <svg
               aria-hidden="true"
               viewBox="0 0 32 30"
@@ -221,7 +228,7 @@ export default async function ProductPage({ params }: Params) {
             <p className="mt-3 text-[20px] leading-snug text-mid">
               Made for lasting beauty
             </p>
-          </div>
+          </div>}
 
           {product.slug !== "still-within" && (product.slug === "pearl-drift" && storySection ? storySection : (
             <div className="rule-t w-full pt-5">
