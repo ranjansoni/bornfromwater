@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { cardImage, type Collection, type Product } from "@/lib/products";
+import { cardImage, formatCad, type Collection, type Product } from "@/lib/products";
 
 type Filter = Collection | "all";
 const featuredProductSlugs = ["pearl-drift", "still-within"];
@@ -59,6 +59,7 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
       </h3>
 
+      <p className="mt-2 text-[16px] font-bold">{formatCad(product.priceCents)} CAD</p>
       <p className="mt-2 mb-4 text-[14px] text-mid">{product.blurb}</p>
 
       <div className="rule-t mt-auto flex justify-end pt-2.5">
