@@ -47,17 +47,18 @@ export default async function ProductPage({ params }: Params) {
   const story = product.story;
   const storyParagraphCount = story?.paragraphs.length ?? 0;
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
+  const pearlDetail = "High Quality Natural Genuine Freshwater Round 5mm";
 
   const specs = [
     { label: "Metal", value: "Genuine 14K Gold-Filled — Not Gold-Plated" },
     ...(product.slug === "pearl-drift"
       ? [
-          { label: "Pearls", value: "High Quality Natural Genuine Freshwater Round 5mm" },
+          { label: "Pearls", value: pearlDetail },
         ]
       : product.slug === "still-within"
       ? [
           { label: "Charm", value: "14k gold-filled, shell-inspired" },
-          { label: "Pearl", value: "One pearl" },
+          { label: "Pearl", value: pearlDetail },
           { label: "Chain & clasp", value: "14k gold-filled" },
         ]
       : [
