@@ -49,9 +49,9 @@ export default async function ProductPage({ params }: Params) {
   const { shippingCents, complimentaryShipping, automaticTax } = shippingConfiguration();
 
   const specs = [
+    { label: "Metal", value: "Genuine 14K Gold-Filled — Not Gold-Plated" },
     ...(product.slug === "pearl-drift"
       ? [
-          { label: "Metal", value: "Genuine 14K Gold-Filled — Not Gold-Plated" },
           { label: "Pearls", value: "High Quality Natural Genuine Freshwater Round 5mm" },
         ]
       : product.slug === "still-within"
@@ -61,7 +61,6 @@ export default async function ProductPage({ params }: Params) {
           { label: "Chain & clasp", value: "14k gold-filled" },
         ]
       : [
-          { label: "Metal", value: "14k gold-filled" },
           { label: "Stone", value: `${product.stone}, genuine` },
         ]),
     {
