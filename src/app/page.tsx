@@ -56,8 +56,8 @@ export default async function Home() {
             Wear your story.
           </h1>
           <p className="max-w-[42ch] text-[16px] leading-[1.5] md:text-[18px]">
-            Genuine gemstones and freshwater pearls. 14k gold-filled. Inspired by the ocean and
-            finished by hand in Vancouver, Canada.
+            Ocean-inspired jewelry, handcrafted with genuine gemstones, freshwater pearls, and 14k
+            gold-filled details designed to carry meaning.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button href="#shop">Shop bracelets</Button>
