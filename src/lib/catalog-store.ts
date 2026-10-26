@@ -7,6 +7,20 @@ import type { CatalogUpdate } from './catalog-management';
 type Query = { query: (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]> };
 export type CatalogProduct = Product & { sortOrder: number; version: number; updatedAt: string };
 export class CatalogConflictError extends Error {}
+function publishedImageOrder(slug: string, images: Product['images']): Product['images'] {
+  // Keep the live gallery in step with the approved image order until its guarded SQL migration runs.
+  if (slug === 'pearl-drift' && images.length === 10 &&
+      images[0]?.src === '/products/pearl-drift/01.jpg' &&
+      images[7]?.src === '/products/pearl-drift/06.png' && images[7]?.kind === 'graphic') {
+    return [{ ...images[7], kind: 'photo' }, ...images.slice(0, 7), ...images.slice(8)];
+  }
+  if (slug === 'still-within' && images.length === 9 &&
+      images[0]?.src === '/products/still-within/01.webp' &&
+      images[3]?.src === '/products/still-within/05-updated.webp') {
+    return [images[3], ...images.slice(0, 3), ...images.slice(4)];
+  }
+  return images;
+}
 async function localPreviewCatalog(): Promise<CatalogProduct[] | null> {
   if (process.env.NODE_ENV !== 'development' || process.env.DATABASE_URL) return null;
   const { products } = await import('./catalog-seed');
@@ -14,11 +28,13 @@ async function localPreviewCatalog(): Promise<CatalogProduct[] | null> {
     updatedAt: new Date(0).toISOString() }));
 }
 function mapProduct(row: Record<string, unknown>): CatalogProduct {
-  return { slug: String(row.slug), sku: String(row.sku), name: String(row.name),
+  const slug = String(row.slug);
+  return { slug, sku: String(row.sku), name: String(row.name),
     collection: row.collection as Product['collection'], stone: String(row.stone),
     priceCents: Number(row.price_cents), price: formatCad(Number(row.price_cents)),
     blurb: String(row.blurb), description: String(row.description), meaning: String(row.meaning),
-    story: row.story as Product['story'] ?? undefined, images: row.images as Product['images'],
+    story: row.story as Product['story'] ?? undefined,
+    images: publishedImageOrder(slug, row.images as Product['images']),
     active: row.active === true, placeholder: row.placeholder === true,
     sortOrder: Number(row.sort_order), version: Number(row.version),
     updatedAt: new Date(row.updated_at as string | Date).toISOString() };
