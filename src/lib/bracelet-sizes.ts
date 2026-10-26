@@ -1,7 +1,7 @@
 export const BRACELET_SIZES = [
-  { value: 'small', label: 'Small — 6.5″' },
-  { value: 'medium', label: 'Medium — 7″ (Standard)' },
-  { value: 'large', label: 'Large — 7.5″' },
+  { value: 'small', label: '6.5″' },
+  { value: 'medium', label: '7″' },
+  { value: 'large', label: '7.5″' },
 ] as const;
 export type BraceletSize = typeof BRACELET_SIZES[number]['value'];
 export const DEFAULT_SIZE: BraceletSize = 'medium';

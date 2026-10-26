@@ -19,7 +19,7 @@ const materials = [
   { label: "Water", value: "Waterproof — safe for showering and swimming" },
   {
     label: "Sizing",
-    value: "Made to your measurement; add it to your order note",
+    value: "Adjustable length; choose a length in inches on the product page",
   },
 ];
 
@@ -66,7 +66,7 @@ const faq = [
   },
   {
     q: "How do I measure my wrist?",
-    a: "Wrap a strip of paper around your wrist, mark where it meets, and measure it flat. Send that number in your order note.",
+    a: "Wrap a strip of paper around your wrist, mark where it meets, and measure it flat. Choose your preferred length in inches on the product page, or include your measurement in the order note.",
   },
   {
     q: "Can I request a custom stone?",
@@ -158,6 +158,7 @@ export default function Care() {
           {faq.map((f, i) => (
             <div
               key={f.q}
+              id={f.q === "How do I measure my wrist?" ? "wrist-measurement" : undefined}
               className={`py-4 ${i === 0 ? "rule-t" : "border-t border-surface"} ${
                 i === faq.length - 1 ? "rule-b" : ""
               }`}

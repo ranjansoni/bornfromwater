@@ -66,9 +66,7 @@ export default async function ProductPage({ params }: Params) {
         ]),
     {
       label: "Sizing",
-      value: product.slug === "pearl-drift"
-        ? "6.5″ Small · 7″ Standard · 7.5″ Large"
-        : "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
+      value: "Adjustable length",
     },
   ];
 
@@ -207,7 +205,17 @@ export default async function ProductPage({ params }: Params) {
                 <dt className={`tracking-[0.1em] text-mid uppercase ${product.slug === "pearl-drift" ? "text-[12px]" : "text-[11px]"}`}>
                   {s.label}
                 </dt>
-                <dd className={product.slug === "pearl-drift" ? "text-[18px] leading-snug" : "text-[14px]"}>{s.value}</dd>
+                <dd className={product.slug === "pearl-drift" ? "text-[18px] leading-snug" : "text-[14px]"}>
+                  {s.value}
+                  {s.label === "Sizing" && (
+                    <Link
+                      href="/care#wrist-measurement"
+                      className="mt-2 block text-[13px] font-bold text-accent-700 underline underline-offset-2 hover:text-accent"
+                    >
+                      Wrist measurement guide →
+                    </Link>
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

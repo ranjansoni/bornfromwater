@@ -286,8 +286,8 @@ test('selected bracelet sizes remain separate through validation, order storage 
   assert.equal(saved.totalCents, product.priceCents * 3);
   const lines = h.requests[0].params.line_items;
   assert.equal(lines.length, 2);
-  assert.equal(lines[0].price_data.product_data.description, 'Bracelet size: Small — 6.5″');
-  assert.equal(lines[1].price_data.product_data.description, 'Bracelet size: Large — 7.5″');
+  assert.equal(lines[0].price_data.product_data.description, 'Bracelet size: 6.5″');
+  assert.equal(lines[1].price_data.product_data.description, 'Bracelet size: 7.5″');
   assert.equal(lines[1].price_data.product_data.metadata.size, 'large');
   // A retry with a changed selection must still reuse the original frozen order.
   await handleCheckout(request({ items: [{ slug: product.slug, quantity: 1, size: 'medium' }], checkoutId }), h.checkoutDeps);
