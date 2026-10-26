@@ -69,10 +69,6 @@ const faq = [
     a: "Wrap a strip of paper around your wrist, mark where it meets, and measure it flat. Choose your preferred length in inches on the product page, or include your measurement in the order note.",
   },
   {
-    q: "Can I request a custom stone?",
-    a: "Email bornfromwatercanada@gmail.com. Custom combinations are made when the stones are available.",
-  },
-  {
     q: "Does it arrive gift-ready?",
     a: "Every order ships in Born From Water packaging, ready to give.",
   },
