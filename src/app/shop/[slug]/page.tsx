@@ -63,7 +63,6 @@ export default async function ProductPage({ params }: Params) {
       label: "Sizing",
       value: "Small — 6.5″ · Medium — 7″ (Standard) · Large — 7.5″",
     },
-    { label: "Ships from", value: "Vancouver, British Columbia" },
   ];
 
   const jsonLd = {
@@ -171,7 +170,7 @@ export default async function ProductPage({ params }: Params) {
               {complimentaryShipping ? "Complimentary shipping within Canada for a limited time." : `${formatCad(shippingCents)} CAD flat shipping within Canada.`}
             </p>
             <p className="mt-1 text-[13px] leading-[1.6] text-mid">
-              Handcrafted to order. Ships within 3–5 business days. Ships from Vancouver, BC.
+              Handcrafted to order. Ships within 3–5 business days.
               {automaticTax && " Any applicable tax is calculated at payment."}
               {" Secure payment with Stripe."}
             </p>
@@ -205,6 +204,24 @@ export default async function ProductPage({ params }: Params) {
               </div>
             ))}
           </dl>
+
+          <div className="flex w-full flex-col items-center py-7 text-center">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 32 30"
+              fill="none"
+              className="h-8 w-8 text-[#b89554]"
+            >
+              <path d="M7 3h18l5 8-14 17L2 11l5-8Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+              <path d="M2 11h28M7 3l5 8 4 17 4-17 5-8" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            </svg>
+            <p className="mt-3 text-[24px] font-semibold leading-tight tracking-[-0.02em] uppercase">
+              14K Gold-Filled
+            </p>
+            <p className="mt-3 text-[20px] leading-snug text-mid">
+              Made for lasting beauty
+            </p>
+          </div>
 
           {product.slug !== "still-within" && (product.slug === "pearl-drift" && storySection ? storySection : (
             <div className="rule-t w-full pt-5">
