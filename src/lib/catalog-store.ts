@@ -9,11 +9,28 @@ export type CatalogProduct = Product & { sortOrder: number; version: number; upd
 export class CatalogConflictError extends Error {}
 const aquamarineBeforeAddition = [1, 3, 4, 6, 7, 8, 10, 11]
   .map(number => `/products/aquamarine-tide/${String(number).padStart(2, '0')}.jpg`);
-const aquamarineNewImages: Product['images'] = [
+const aquamarineFirstAddition: Product['images'] = [
   { src: '/products/aquamarine-tide/img-8637.jpeg', kind: 'photo' },
   { src: '/products/aquamarine-tide/img-8638.jpeg', kind: 'photo' },
   { src: '/products/aquamarine-tide/flatlay-03.png', kind: 'photo' },
 ];
+const aquamarineSecondAddition: Product['images'] = [
+  { src: '/products/aquamarine-tide/img-8991.jpeg', kind: 'photo' },
+  { src: '/products/aquamarine-tide/img-8631.jpeg', kind: 'photo' },
+];
+const aquamarineAfterFirstAddition = [
+  ...aquamarineBeforeAddition,
+  ...aquamarineFirstAddition.map(image => image.src),
+];
+const aquamarineBeforeLeadChange = [
+  ...aquamarineAfterFirstAddition,
+  ...aquamarineSecondAddition.map(image => image.src),
+];
+const aquamarineCuratedIndices = [9, 8, 3, 11, 2, 5, 12, 7, 0, 4, 1, 10];
+function matchesGallery(images: Product['images'], expectedSources: string[]) {
+  return images.length === expectedSources.length &&
+    images.every((image, index) => image.src === expectedSources[index]);
+}
 function publishedImages(slug: string, images: Product['images']): Product['images'] {
   // Keep the live gallery in step with approved image changes until guarded SQL migrations run.
   if (slug === 'pearl-drift' && images.length === 10 &&
@@ -26,9 +43,16 @@ function publishedImages(slug: string, images: Product['images']): Product['imag
       images[3]?.src === '/products/still-within/05-updated.webp') {
     return [images[3], ...images.slice(0, 3), ...images.slice(4)];
   }
-  if (slug === 'aquamarine-tide' && images.length === aquamarineBeforeAddition.length &&
-      images.every((image, index) => image.src === aquamarineBeforeAddition[index])) {
-    return [...images, ...aquamarineNewImages];
+  if (slug === 'aquamarine-tide') {
+    const complete = matchesGallery(images, aquamarineBeforeAddition)
+      ? [...images, ...aquamarineFirstAddition, ...aquamarineSecondAddition]
+      : matchesGallery(images, aquamarineAfterFirstAddition)
+        ? [...images, ...aquamarineSecondAddition]
+        : images;
+    if (matchesGallery(complete, aquamarineBeforeLeadChange)) {
+      return aquamarineCuratedIndices.map(index => complete[index]);
+    }
+    return complete;
   }
   return images;
 }
