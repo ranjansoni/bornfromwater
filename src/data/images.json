@@ -337,7 +337,10 @@
     { "file": "07.jpg", "kind": "photo" },
     { "file": "08.jpg", "kind": "photo" },
     { "file": "10.jpg", "kind": "photo" },
-    { "file": "11.jpg", "kind": "photo" }
+    { "file": "11.jpg", "kind": "photo" },
+    { "file": "img-8637.jpeg", "kind": "photo" },
+    { "file": "img-8638.jpeg", "kind": "photo" },
+    { "file": "flatlay-03.png", "kind": "photo" }
   ],
   "amethyst-tide": [
     { "file": "01.jpg", "kind": "photo" },

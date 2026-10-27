@@ -27,6 +27,7 @@ const stillWithinGiftBoxMigration = await readFile(new URL('../src/db/migrations
 const pearlGalleryMigration = await readFile(new URL('../src/db/migrations/014-pearl-drift-gallery.sql', import.meta.url), 'utf8');
 const pearlLeadImageMigration = await readFile(new URL('../src/db/migrations/015-pearl-drift-lead-image.sql', import.meta.url), 'utf8');
 const stillWithinLeadImageMigration = await readFile(new URL('../src/db/migrations/016-still-within-lead-image.sql', import.meta.url), 'utf8');
+const aquamarineNewImagesMigration = await readFile(new URL('../src/db/migrations/017-aquamarine-new-images.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -40,7 +41,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); await db.exec(pearlLeadImageMigration); await db.exec(stillWithinLeadImageMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); await db.exec(pearlLeadImageMigration); await db.exec(stillWithinLeadImageMigration); await db.exec(aquamarineNewImagesMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -107,13 +108,21 @@ test('Still Within is purchasable for CA$52 and its migration preserves owner ed
   await db.exec(stillWithinLeadImageMigration);
   assert.equal((await catalog.get('still-within')).version, product.version);
 });
-test('Aquamarine Tide gallery removes only positions 2, 5 and 9', async () => {
+test('Aquamarine Tide gallery keeps the selected removals and adds three new photos once', async () => {
   const product = await catalog.get('aquamarine-tide');
   assert.deepEqual(product.images.map(image => image.src),
-    [1, 3, 4, 6, 7, 8, 10, 11].map(n => `/products/aquamarine-tide/${String(n).padStart(2, '0')}.jpg`));
+    [
+      ...[1, 3, 4, 6, 7, 8, 10, 11].map(n => `/products/aquamarine-tide/${String(n).padStart(2, '0')}.jpg`),
+      '/products/aquamarine-tide/img-8637.jpeg',
+      '/products/aquamarine-tide/img-8638.jpeg',
+      '/products/aquamarine-tide/flatlay-03.png',
+    ]);
   assert.equal(product.priceCents, 4900);
   await db.exec(aquamarineGalleryMigration);
+  await db.exec(aquamarineNewImagesMigration);
   assert.equal((await catalog.get('aquamarine-tide')).version, product.version);
+  await db.query("UPDATE catalog_products SET images = images - 10 - 9 - 8 WHERE slug = 'aquamarine-tide'");
+  assert.deepEqual((await catalog.get('aquamarine-tide')).images, product.images);
 });
 test('Amethyst Tide gallery removes only the 11th image', async () => {
   const product = await catalog.get('amethyst-tide');
