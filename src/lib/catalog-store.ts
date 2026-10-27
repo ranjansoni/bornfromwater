@@ -7,6 +7,14 @@ import type { CatalogUpdate } from './catalog-management';
 type Query = { query: (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]> };
 export type CatalogProduct = Product & { sortOrder: number; version: number; updatedAt: string };
 export class CatalogConflictError extends Error {}
+const pearlBeforeBox = [
+  '06.png', '01.jpg', '02.jpg', '03.jpg',
+  'plaster-hand-01.png', 'plaster-hand-02.png', 'plaster-hand-03.png',
+  '05.png', '07.png', '08.png',
+].map(file => `/products/pearl-drift/${file}`);
+const pearlBox: Product['images'][number] = {
+  src: '/products/pearl-drift/img-9251.jpeg', kind: 'photo',
+};
 const aquamarineBeforeAddition = [1, 3, 4, 6, 7, 8, 10, 11]
   .map(number => `/products/aquamarine-tide/${String(number).padStart(2, '0')}.jpg`);
 const aquamarineFirstAddition: Product['images'] = [
@@ -33,10 +41,13 @@ function matchesGallery(images: Product['images'], expectedSources: string[]) {
 }
 function publishedImages(slug: string, images: Product['images']): Product['images'] {
   // Keep the live gallery in step with approved image changes until guarded SQL migrations run.
-  if (slug === 'pearl-drift' && images.length === 10 &&
+  if (slug === 'pearl-drift') {
+    const curated = images.length === 10 &&
       images[0]?.src === '/products/pearl-drift/01.jpg' &&
-      images[7]?.src === '/products/pearl-drift/06.png' && images[7]?.kind === 'graphic') {
-    return [{ ...images[7], kind: 'photo' }, ...images.slice(0, 7), ...images.slice(8)];
+      images[7]?.src === '/products/pearl-drift/06.png' && images[7]?.kind === 'graphic'
+      ? [{ ...images[7], kind: 'photo' as const }, ...images.slice(0, 7), ...images.slice(8)]
+      : images;
+    return matchesGallery(curated, pearlBeforeBox) ? [...curated, pearlBox] : curated;
   }
   if (slug === 'still-within' && images.length === 9 &&
       images[0]?.src === '/products/still-within/01.webp' &&

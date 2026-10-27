@@ -370,7 +370,8 @@
     { "file": "plaster-hand-03.png", "kind": "photo" },
     { "file": "05.png", "kind": "graphic" },
     { "file": "07.png", "kind": "graphic" },
-    { "file": "08.png", "kind": "graphic" }
+    { "file": "08.png", "kind": "graphic" },
+    { "file": "img-9251.jpeg", "kind": "photo" }
   ],
   "still-within": [
     { "file": "05-updated.webp", "kind": "photo" },
