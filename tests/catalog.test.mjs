@@ -31,6 +31,7 @@ const aquamarineNewImagesMigration = await readFile(new URL('../src/db/migration
 const aquamarineMoreImagesMigration = await readFile(new URL('../src/db/migrations/018-aquamarine-more-images.sql', import.meta.url), 'utf8');
 const aquamarineWristLeadMigration = await readFile(new URL('../src/db/migrations/019-aquamarine-wrist-lead.sql', import.meta.url), 'utf8');
 const pearlBoxMigration = await readFile(new URL('../src/db/migrations/020-pearl-drift-box-image.sql', import.meta.url), 'utf8');
+const pureHeartLeadMigration = await readFile(new URL('../src/db/migrations/021-pure-heart-wrist-lead.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -44,7 +45,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); await db.exec(pearlLeadImageMigration); await db.exec(stillWithinLeadImageMigration); await db.exec(aquamarineNewImagesMigration); await db.exec(aquamarineMoreImagesMigration); await db.exec(aquamarineWristLeadMigration); await db.exec(pearlBoxMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); await db.exec(pearlLeadImageMigration); await db.exec(stillWithinLeadImageMigration); await db.exec(aquamarineNewImagesMigration); await db.exec(aquamarineMoreImagesMigration); await db.exec(aquamarineWristLeadMigration); await db.exec(pearlBoxMigration); await db.exec(pureHeartLeadMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -99,6 +100,25 @@ test('Pearl Drift story migration leaves an owner-edited story unchanged', async
   await db.query("UPDATE catalog_products SET story = '{\"title\":\"Owner story\",\"paragraphs\":[\"Personal copy\"]}'::jsonb WHERE slug = 'pearl-drift'");
   await db.exec(pearlStoryMigration);
   assert.equal((await catalog.get('pearl-drift')).story.title, 'Owner story');
+});
+test('Pure Heart removes its old first and fifth photos and leads with the new wrist image', async () => {
+  const expected = products.find(product => product.slug === 'pure-heart');
+  const before = [
+    { src: '/products/pure-heart/01.jpg', kind: 'photo' },
+    ...expected.images.slice(1, 4),
+    { src: '/products/pure-heart/05.jpg', kind: 'photo' },
+    ...expected.images.slice(4),
+  ];
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'pure-heart'", [JSON.stringify(before)]);
+  const projected = await catalog.get('pure-heart');
+  assert.deepEqual(projected.images, expected.images);
+  assert.equal(cardImage(projected)?.src, '/products/pure-heart/wrist-lotus.png');
+  await db.exec(pureHeartLeadMigration);
+  const persisted = await db.query("SELECT images, version FROM catalog_products WHERE slug = 'pure-heart'");
+  assert.deepEqual(persisted.rows[0].images, expected.images);
+  await db.exec(pureHeartLeadMigration);
+  const unchanged = await db.query("SELECT version FROM catalog_products WHERE slug = 'pure-heart'");
+  assert.equal(unchanged.rows[0].version, persisted.rows[0].version);
 });
 test('Still Within is purchasable for CA$52 and its migration preserves owner edits', async () => {
   const product = await catalog.get('still-within');

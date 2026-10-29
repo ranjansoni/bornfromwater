@@ -15,6 +15,13 @@ const pearlBeforeBox = [
 const pearlBox: Product['images'][number] = {
   src: '/products/pearl-drift/img-9251.jpeg', kind: 'photo',
 };
+const pureHeartBeforeChange = [
+  '01.jpg', '02.jpg', '03.jpg', '04.jpg', '05.jpg', '06.jpg', '07.jpg',
+  '06-presentation.png', '09.jpg', '10.jpg', '11.jpg', '12.jpg', '13.jpg',
+].map(file => `/products/pure-heart/${file}`);
+const pureHeartNewLead: Product['images'][number] = {
+  src: '/products/pure-heart/wrist-lotus.png', kind: 'photo',
+};
 const aquamarineBeforeAddition = [1, 3, 4, 6, 7, 8, 10, 11]
   .map(number => `/products/aquamarine-tide/${String(number).padStart(2, '0')}.jpg`);
 const aquamarineFirstAddition: Product['images'] = [
@@ -53,6 +60,9 @@ function publishedImages(slug: string, images: Product['images']): Product['imag
       images[0]?.src === '/products/still-within/01.webp' &&
       images[3]?.src === '/products/still-within/05-updated.webp') {
     return [images[3], ...images.slice(0, 3), ...images.slice(4)];
+  }
+  if (slug === 'pure-heart' && matchesGallery(images, pureHeartBeforeChange)) {
+    return [pureHeartNewLead, ...images.slice(1, 4), ...images.slice(5)];
   }
   if (slug === 'aquamarine-tide') {
     const complete = matchesGallery(images, aquamarineBeforeAddition)
