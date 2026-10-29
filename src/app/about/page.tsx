@@ -67,7 +67,7 @@ export default function About() {
             Follow along
           </p>
           <h2 className="mt-3 text-[26px] font-extrabold tracking-[-0.02em]">
-            New pieces first on Instagram
+            Follow Born From Water
           </h2>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -82,6 +82,12 @@ export default function About() {
             variant="secondary"
           >
             Pinterest
+          </Button>
+          <Button
+            href="https://www.tiktok.com/@born.from.water6"
+            variant="secondary"
+          >
+            TikTok
           </Button>
           <Button href="/">Shop the collection</Button>
         </div>

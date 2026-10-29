@@ -3,6 +3,7 @@ import Link from "next/link";
 const social = [
   { label: "Instagram", href: "https://www.instagram.com/born.from.water/" },
   { label: "Pinterest", href: "https://www.pinterest.com/bornfromwater" },
+  { label: "TikTok", href: "https://www.tiktok.com/@born.from.water6" },
 ];
 
 export function Footer() {
