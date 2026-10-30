@@ -1,5 +1,7 @@
 # Stripe Checkout migration
 
+> **Historical migration guide.** Production launched on 2026-10-01 and later releases changed the catalogue and Canadian shipping offer. For current setup, resource separation, pending work and test status, read [CONTINUATION.md](CONTINUATION.md) and the root [README.md](../README.md) first. The sandbox-only and prelaunch directions below record the original migration sequence; do not apply them blindly to production.
+
 This migration uses Stripe-hosted Checkout Sessions for one-time CAD payments.
 All operations must remain in **Born From Water sandbox** until business shipping
 and tax settings and the launch steps below are approved and verified.

@@ -1,139 +1,47 @@
 # Born From Water
 
-Catalogue and lightweight storefront for Born From Water, a Vancouver maker of
-handcrafted 14k gold-filled gemstone bracelets.
+Live catalogue and storefront for Born From Water, a Vancouver maker of 14k gold-filled gemstone and freshwater-pearl bracelets. Production is [www.bornfromwater.ca](https://www.bornfromwater.ca). **For a new computer or a new Codex session, read [the current continuation handoff](docs/CONTINUATION.md) first.** The older [Stripe handoff](HANDOFF-STRIPE.md) is historical and contains prelaunch statements that are no longer current.
 
-The private owner portal at `/admin` tracks packing, shipping, delivery and customer
-details, plus anonymous recent and potentially abandoned carts at `/admin/carts`.
-See [owner portal setup](docs/order-management.md) for authentication,
-the additive database migration and Stripe paid-order email notifications.
+## What runs today
 
-Built from the design handoff in `../design_handoff_born_from_water` — see its
-`README.md` for the binding spec (tokens, screen layouts, copy).
+Next.js 16.3.7 App Router, React 19, TypeScript, Tailwind 4, Neon Postgres and Stripe-hosted Checkout. The public site has Signature and Tide collections, product galleries, CAD prices, a browser cart, Canada-only purchasing, a complimentary-Canadian-shipping offer, care/wrist-measurement information, and a returns policy. The private `/admin` portal manages products, orders, packing/shipping/delivery and anonymous cart activity.
 
-The site owns its catalogue and browser cart. Checkout validates new carts against
-server catalogue prices, saves an order in Postgres, and redirects to Stripe-hosted
-Checkout for a one-time CAD payment. Signed webhooks and server-retrieved Sessions
-confirm payment. A confirmation URL alone cannot mark an order paid. Historical
-GoDaddy orders remain readable; the old charge endpoint returns HTTP 410.
+Checkout validates cart contents against server catalogue prices, stores a pending order in Postgres and redirects to a Stripe-hosted one-time CAD payment. Signed webhooks and server-retrieved Sessions confirm payment; a confirmation URL alone cannot mark an order paid. Historical GoDaddy orders remain readable; the old charge endpoint returns HTTP 410. Production launched on 2026-10-01. See [the launch and verification record](docs/stripe-verification.md) for what was and was not exercised in live mode.
 
-## Development and sandbox setup
+## Continue on a new computer
 
-Next.js 16.3.7 (App Router), React 19, TypeScript, Tailwind 4, Neon Postgres,
-and Stripe SDK 22.6.2. Node 22 is used for the test suite.
+Use GitHub `ranjansoni/bornfromwater` **main** and the commit named in [CONTINUATION.md](docs/CONTINUATION.md). The Windows parent folder has an older dirty Git checkout; it is not the current source. Project-specific `AGENTS.md` and `CLAUDE.md` are tracked. `AGENTS.md` requires reading the relevant guide under `node_modules/next/dist/docs/` before changing Next.js code.
+
+Use Node 22 for the documented test baseline. For a local preview without payment credentials, the development catalogue can use checked-in seed data. For a real sandbox checkout, set up a **separate** Neon branch and Stripe sandbox credentials in ignored `.env.local`; never put production secrets in local test configuration or Git.
 
 ```bash
+git clone https://github.com/ranjansoni/bornfromwater.git
+cd bornfromwater
 npm ci
+cp .env.example .env.local  # fill in sandbox values securely if testing checkout
 npm test
 npm run lint
-npm run build
-npm run dev
+npx tsc --noEmit
+npm run build -- --webpack
+npm run dev -- -p 3100
 ```
 
-Copy `.env.example` to `.env.local` and supply credentials securely. Next.js does
-not load `.env.publish.local`. Use **Born From Water sandbox** and a separate
-sandbox database. For a fresh database run `src/db/schema.sql`. For an existing
-orders table, back it up and run the additive `src/db/migrations/001-stripe-checkout.sql`;
-never drop/recreate orders. Keep the original `ORDER_SIGNING_SECRET` for historical
-links. No production database migration or deployment has been performed here.
+Next.js does not load `.env.publish.local`. `npm run build -- --webpack` and `npm run dev -- --webpack` are the supported fallback if Turbopack worker ports are restricted. A first build may need network access for the Google font loader. The test suite uses embedded PostgreSQL with synthetic orders and signed Stripe fixtures; it does not need live credentials. An end-to-end sandbox payment/webhook test does. On the prior Windows host, Node 24/25 test startup failed at `os.userInfo()` with `uv_os_get_passwd ENOMEM`; details and other known test issues are in the continuation handoff.
 
-The test suite uses embedded PostgreSQL with synthetic orders and signed Stripe
-fixtures; it does not need runtime credentials or contact Stripe. A real sandbox
-payment and webhook delivery still require the connected account and `.env.local`.
-See [Stripe setup, migration, testing and fulfillment](docs/stripe-migration.md).
+For a fresh database, use `src/db/schema.sql`; for an existing database, review the additive `src/db/migrations/` in order and back up first. Never recreate an existing production `orders` table. Preserve `ORDER_SIGNING_SECRET` for historical signed links. See [Stripe setup](docs/stripe-migration.md) and [owner portal setup](docs/order-management.md). The current shipping offer is controlled by `FREE_SHIPPING_OFFER_ENABLED`; the owner chose to keep it active until manually disabled.
 
-If Turbopack's worker port is restricted by the host environment, the supported
-fallback is `npm run build -- --webpack` (and `npm run dev -- --webpack`). The
-existing Google font loader requires network access on the first build.
+## Catalogue and images
 
-## Design rules (from the Modernist system — these are binding)
+Neon `catalog_products` is the runtime catalogue and authoritative server price. `/admin/products` can edit supported fields directly. `src/data/products.json` and `src/data/images.json` are the checked-in seed/local-preview data, **not a live database export**. `src/lib/catalog-store.ts` contains guarded image-order transforms for rows created before recent photo releases. `src/lib/products.ts` defines shared product types, `TIDE_LIVE=true`, and `cardImage()`. Product images served by the app are checked in under `public/products/<slug>/`; original source folders on the owner's Google Drive are external and need separate access for future editing.
 
-- **Zero border radius, everywhere.** Enforced globally in `globals.css`.
-- **No shadows.** Also enforced globally.
-- **Everything flush left**, including button labels. Never centre a label.
-- 2px rules between sections; 1px surface rules inside tables and FAQ lists.
-- Archivo only (400/700/800), self-hosted via `next/font`.
-- **Exactly two gradients** — the hero panel and the closing banner. The
-  waterline stop at 32/33% is hard, never blended. Do not add a third.
+The live shop currently has twelve seed products: seven Signature and five Tide. Pearl Drift, Still Within and Solé are the first three homepage cards and carry `NEW` badges; Solé is CAD $42. The current homepage card shows prices and “View details”. The Solé live gallery's first image is `img-9485.jpeg` after the owner asked to replace its former first image with the former fourth. The exact owner-approved copy, gallery histories, decisions and current limitations are in [CONTINUATION.md](docs/CONTINUATION.md) and the source files.
 
-## Content
+The original design handoff referenced by an older README as `../design_handoff_born_from_water` was not found in the current Windows workspace. It is not in this repository; transfer it separately if the original design spec is needed. The current UI and tracked source remain available. The established design uses square corners, no shadows, left-aligned labels and Archivo; inspect the relevant components and styles before changing layout.
 
-`src/data/products.json` is the catalogue. `priceCents` is the authoritative CAD
-price used server-side; `price` is display copy. `sku` is the stable internal SKU
-stored with the validated order.
+## Documentation
 
-### Product names were corrected against Etsy
-
-The design handoff used Etsy's **SEO listing titles** as product names, not the
-owner's actual product names, and two of the six also carried the wrong stone.
-Worse, the two black tourmaline pieces had their names, blurbs and stone notes
-**crossed with each other**.
-
-Every name, slug, stone, blurb and stone note was re-derived from each listing's
-own Etsy copy and from the card photographed in its own product images:
-
-| Slug | Name | Stone | Etsy listing opens with |
-| --- | --- | --- | --- |
-| `new-beginnings` | New Beginnings Bracelet | Moonstone + peridot | "New Beginnings / Every new chapter begins with a single step." |
-| `pure-heart` | Pure Heart Bracelet | Rose quartz + peridot | "PURE HEART / Wear love. Give love. Choose love." |
-| `ocean-mist` | Ocean Mist Bracelet | Moonstone | "Ocean Mist Moonstone Bracelet" |
-| `crystal-tide` | Crystal Tide Bracelet | Peridot + clear quartz | "CRYSTAL TIDE / For the courage to begin again." |
-| `protection` | Protection Bracelet | Black tourmaline + clear quartz | "PROTECTION — Stand rooted. Move forward with confidence" |
-| `quiet-strength` | Quiet Strength Bracelet | Black tourmaline | "QUIET STRENGTH / Some of the strongest people carry their strength quietly." |
-
-The handoff's original slugs (`peridot`, `dainty-gemstone`, `black-tourmaline`,
-…) no longer exist and return 404. Nothing was public when they changed.
-
-### Stories
-
-Each product carries a `story` — a title and two paragraphs that render between
-the name and the price, standing in for `description` on the page (which still
-feeds metadata and JSON-LD).
-
-Unlike the rest of the site's copy, **the stories are written for the brand
-rather than taken from the owner's words verbatim.** They are built outward from
-each piece's real card line, and they deliberately assert no biographical facts
-and no health or metaphysical claims — stone associations are always framed as
-tradition ("has long been worn for…"). None of them names its own piece, so the
-copy survives any future rename. **The owner should read and edit all six before
-launch.**
-
-`src/data/images.json` maps each slug to its images in Etsy listing order, each
-tagged `photo` or `graphic`:
-
-- `photo` — real product photography (46 images)
-- `graphic` — the brand's Etsy info slides: gold-filled chain, lotus charm,
-  stone properties, FAQs (26 images)
-
-Product galleries render **every** image in listing order. Grid cards and
-JSON-LD use photographs only, via `cardImage()` in `src/lib/products.ts`.
-
-Images were pulled at full resolution (`il_fullxfull`) from the live Etsy
-listings and are served from `/public/products/<slug>/`. They are not
-hotlinked — Etsy's CDN is not licensed for that and its URLs are unstable.
-
-## The Tide collection is built but hidden
-
-`TIDE_LIVE` in `src/lib/products.ts` is `false`. Every Tide field is invented
-placeholder data and its Etsy URLs point at the shop, not real listings.
-
-While it is `false`: `/collections/tide` and the three Tide product pages return
-404, the announcement bar and the "See Tide, new" button are absent, the nav
-drops "Tide", the landing collection cell reads "Coming soon", and Tide is
-excluded from the sitemap and the product grid.
-
-To launch Tide: replace the three entries in `products.json` with real names,
-stones, prices, descriptions and listing URLs, drop the `placeholder` flags, add
-photography under `/public/products/<slug>/`, register it in `images.json`, then
-flip `TIDE_LIVE` to `true`.
-
-## Still outstanding before launch
-
-- Per-route OG images (metadata and JSON-LD are wired; images are not).
-- The `bornfromwater.ca` base URL in `layout.tsx`, `sitemap.ts` and `robots.ts`
-  is a placeholder — set it to the real domain.
-- Instagram and Pinterest URLs in `Footer.tsx` and `about/page.tsx` are guesses.
-- A real logo. The handoff says none exists, but the Etsy info slides carry a
-  gold lotus mark and a serif `BORN FROM WATER / JEWELRY WITH MEANING` wordmark.
-  That identity has not been reconciled with the Archivo set-type wordmark used
-  here.
+- [Current continuation and file-transfer inventory](docs/CONTINUATION.md)
+- [Stripe launch and verification history](docs/stripe-verification.md)
+- [Stripe setup and migration background](docs/stripe-migration.md)
+- [Owner portal and order management](docs/order-management.md)
+- [Historical September Stripe handoff](HANDOFF-STRIPE.md)

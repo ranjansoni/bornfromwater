@@ -1,5 +1,7 @@
 # Stripe migration verification — 2026-09-29
 
+> **Current continuation:** See [CONTINUATION.md](CONTINUATION.md) for the 2026-10-30 source checkpoint, later catalogue/image changes, the complimentary-shipping offer, file-transfer inventory and known test issues. The dated sections below are an audit trail; a historical “production unchanged” statement refers only to that stage.
+
 ## Production launch — 2026-10-01
 
 Current state: **live at https://www.bornfromwater.ca**. The owner authorized public launch, production
