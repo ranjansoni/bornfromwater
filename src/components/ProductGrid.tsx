@@ -7,6 +7,7 @@ import { cardImage, formatCad, type Collection, type Product } from "@/lib/produ
 
 type Filter = Collection | "all";
 const featuredProductSlugs = ["pearl-drift", "still-within"];
+const newProductSlugs = [...featuredProductSlugs, "sole"];
 
 const headings: Record<Filter, string> = {
   all: "All pieces",
@@ -16,7 +17,7 @@ const headings: Record<Filter, string> = {
 
 export function ProductCard({ product, showFullImage = false }: { product: Product; showFullImage?: boolean }) {
   const img = cardImage(product);
-  const isNew = featuredProductSlugs.includes(product.slug) && product.active && !product.placeholder;
+  const isNew = newProductSlugs.includes(product.slug) && product.active && !product.placeholder;
 
   return (
     <article className="flex flex-col">
