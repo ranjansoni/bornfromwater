@@ -22,6 +22,10 @@ const pureHeartBeforeChange = [
 const pureHeartNewLead: Product['images'][number] = {
   src: '/products/pure-heart/wrist-lotus.png', kind: 'photo',
 };
+const soleBeforeLeadChange = [
+  'img-9638-new.jpeg', 'img-9480.jpeg', 'img-9637.jpeg',
+  'img-9485.jpeg', 'img-9634.jpeg', 'img-9632.jpeg',
+].map(file => `/products/sole/${file}`);
 const aquamarineBeforeAddition = [1, 3, 4, 6, 7, 8, 10, 11]
   .map(number => `/products/aquamarine-tide/${String(number).padStart(2, '0')}.jpg`);
 const aquamarineFirstAddition: Product['images'] = [
@@ -63,6 +67,9 @@ function publishedImages(slug: string, images: Product['images']): Product['imag
   }
   if (slug === 'pure-heart' && matchesGallery(images, pureHeartBeforeChange)) {
     return [pureHeartNewLead, ...images.slice(1, 4), ...images.slice(5)];
+  }
+  if (slug === 'sole' && matchesGallery(images, soleBeforeLeadChange)) {
+    return [images[3], ...images.slice(1, 3), ...images.slice(4)];
   }
   if (slug === 'aquamarine-tide') {
     const complete = matchesGallery(images, aquamarineBeforeAddition)
