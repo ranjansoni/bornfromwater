@@ -31,7 +31,7 @@ export function ProductCard({ product, showFullImage = false }: { product: Produ
             alt={product.name}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className={showFullImage ? "object-contain p-5" : "object-cover"}
+            className={showFullImage ? (product.slug === "sole" ? "object-cover p-5" : "object-contain p-5") : "object-cover"}
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-accent-100 px-6 text-center">
