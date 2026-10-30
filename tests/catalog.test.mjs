@@ -32,6 +32,7 @@ const aquamarineMoreImagesMigration = await readFile(new URL('../src/db/migratio
 const aquamarineWristLeadMigration = await readFile(new URL('../src/db/migrations/019-aquamarine-wrist-lead.sql', import.meta.url), 'utf8');
 const pearlBoxMigration = await readFile(new URL('../src/db/migrations/020-pearl-drift-box-image.sql', import.meta.url), 'utf8');
 const pureHeartLeadMigration = await readFile(new URL('../src/db/migrations/021-pure-heart-wrist-lead.sql', import.meta.url), 'utf8');
+const soleMigration = await readFile(new URL('../src/db/migrations/022-sole.sql', import.meta.url), 'utf8');
 const query = { query: async (sql, params) => (await db.query(sql, params)).rows };
 const catalog = createCatalogStore(query);
 const orders = createOrderStore(query);
@@ -45,7 +46,7 @@ const fields = (p = original, overrides = {}) => ({ name: p.name, price: (p.pric
   availability: 'active', sortOrder: 0, version: 1, ...overrides });
 const request = (value, headers = {}) => new Request('https://shop.example/api/admin/products/new-beginnings', {
   method: 'PATCH', headers: { origin: 'https://shop.example', cookie, 'content-type': 'application/json', ...headers }, body: JSON.stringify(value) });
-beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); await db.exec(pearlLeadImageMigration); await db.exec(stillWithinLeadImageMigration); await db.exec(aquamarineNewImagesMigration); await db.exec(aquamarineMoreImagesMigration); await db.exec(aquamarineWristLeadMigration); await db.exec(pearlBoxMigration); await db.exec(pureHeartLeadMigration); });
+beforeEach(async () => { await db.exec('TRUNCATE orders, catalog_products CASCADE'); await db.exec(migration); await db.exec(pearlMigration); await db.exec(stillWithinMigration); await db.exec(pearlStoryMigration); await db.exec(aquamarineGalleryMigration); await db.exec(amethystGalleryMigration); await db.exec(stillWithinGalleryMigration); await db.exec(stillWithinGiftBoxMigration); await db.exec(pearlGalleryMigration); await db.exec(pearlLeadImageMigration); await db.exec(stillWithinLeadImageMigration); await db.exec(aquamarineNewImagesMigration); await db.exec(aquamarineMoreImagesMigration); await db.exec(aquamarineWristLeadMigration); await db.exec(pearlBoxMigration); await db.exec(pureHeartLeadMigration); await db.exec(soleMigration); });
 after(() => db.close());
 
 test('catalogue seed preserves every product photograph, word, price and identity', async () => {
@@ -57,6 +58,20 @@ test('catalogue seed preserves every product photograph, word, price and identit
       assert.deepEqual(row[key], p[key], `${p.slug}: ${key}`);
     }
   }
+});
+test('Solé migration creates the purchasable CA$42 listing once and preserves later edits', async () => {
+  const expected = products.find(product => product.slug === 'sole');
+  const seeded = await catalog.get('sole');
+  assert.ok(seeded);
+  for (const key of ['slug', 'sku', 'name', 'priceCents', 'collection', 'stone', 'blurb', 'description', 'meaning', 'story', 'images', 'placeholder']) {
+    assert.deepEqual(seeded[key], expected[key], `Solé: ${key}`);
+  }
+  assert.equal(seeded.active, true);
+  assert.equal(validateCart([{ slug: 'sole', size: 'medium', quantity: 1 }], await catalog.list()).totalCents, 4200);
+  const edited = await catalog.update('sole', validateCatalogUpdate(fields(expected, { name: 'Owner edited Solé', sortOrder: seeded.sortOrder, version: seeded.version })));
+  await db.exec(soleMigration);
+  assert.deepEqual(await catalog.get('sole'), edited);
+  assert.equal((await db.query("SELECT count(*)::integer AS count FROM catalog_products WHERE slug='sole'")).rows[0].count, 1);
 });
 test('Pearl Drift is purchasable for CA$62 and its migration preserves owner edits', async () => {
   const pearl = await catalog.get('pearl-drift');

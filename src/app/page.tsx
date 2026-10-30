@@ -44,6 +44,11 @@ const reviews = [
 
 export default async function Home() {
   const liveProducts = await getPublicCatalog();
+  // ProductGrid pins Pearl Drift and Still Within first; place Solé next.
+  const homeProducts = [
+    ...liveProducts.filter(product => product.slug === "sole"),
+    ...liveProducts.filter(product => product.slug !== "sole"),
+  ];
   const signatureCount = liveProducts.filter(p => p.collection === "signature").length;
   return (
     <>
@@ -81,7 +86,7 @@ export default async function Home() {
       </section>
 
       <div id="shop" className="scroll-mt-6">
-        <ProductGrid products={liveProducts} filterable={TIDE_LIVE} heading="Find your everyday piece"
+        <ProductGrid products={homeProducts} filterable={TIDE_LIVE} heading="Find your everyday piece"
           showFullImages />
       </div>
 

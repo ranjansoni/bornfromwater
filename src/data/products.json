@@ -208,5 +208,27 @@
     "meaning": "Amethyst is traditionally associated with calm, clarity, and inner peace, bringing a soft touch of purple to this everyday piece.",
     "images": [],
     "placeholder": false
+  },
+  {
+    "slug": "sole",
+    "name": "Solé Bracelet",
+    "collection": "signature",
+    "stone": "14K Gold-Filled",
+    "price": "CA$42.00",
+    "priceCents": 4200,
+    "sku": "BFW-SOLE",
+    "blurb": "One golden bead. A reminder that you are enough, just as you are.",
+    "description": "Solé is a 14K gold-filled bracelet with a single polished gold bead on a delicate chain. Inspired by the warmth of the sun, it is made for everyday wear, alone or layered.",
+    "story": {
+      "title": "Solé — One & Only ✨",
+      "paragraphs": [
+        "One golden bead. A reminder that you are enough, just as you are.",
+        "Inspired by the warmth of the sun, Solé celebrates the beauty of simplicity. A single radiant gold bead rests on a delicate chain — a quiet symbol of individuality, inner strength, and the light we carry within.",
+        "Effortlessly elegant, made to be worn every day, alone or layered."
+      ]
+    },
+    "meaning": "One golden bead. One beautiful reminder.\nIn a world of endless comparisons, there is only one you.\nUnique. Radiant. Enough, just as you are.",
+    "images": [],
+    "placeholder": false
   }
 ]

@@ -126,6 +126,32 @@ test('complimentary Canadian shipping creates a zero-cost Stripe rate and record
   assert.equal((await db.query('SELECT shipping_cents FROM orders WHERE order_id = $1', [paid.orderId])).rows[0].shipping_cents, 0);
   assert.equal(paid.paidTotalCents, cart.totalCents);
 });
+test('Solé checkout sends the selected bracelet size and CA$42 with complimentary Canadian shipping', async () => {
+  const sole = products.find(p => p.slug === 'sole');
+  assert.equal(sole.priceCents, 4200);
+  assert.equal(sole.active, true);
+  assert.equal(sole.placeholder, false);
+  const delivery = shippingConfiguration({ STRIPE_SHIPPING_COUNTRIES: 'CA', STRIPE_SHIPPING_CENTS: '1000', FREE_SHIPPING_OFFER_ENABLED: 'true' });
+  const h = harness({ ...config, ...delivery });
+  const body = { checkoutId, items: [{ slug: sole.slug, size: 'medium', quantity: 1 }], expectedPrices: { sole: 4200 } };
+  const response = await handleCheckout(request(body), h.checkoutDeps);
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).paymentPath, /^https:\/\/checkout\.stripe\.com/);
+  const params = h.requests[0].params;
+  assert.equal(params.line_items[0].price_data.unit_amount, 4200);
+  assert.equal(params.line_items[0].price_data.currency, 'cad');
+  assert.equal(params.line_items[0].price_data.product_data.name, 'Solé Bracelet');
+  assert.equal(params.line_items[0].price_data.product_data.description, 'Bracelet size: 7″');
+  assert.deepEqual(params.shipping_address_collection.allowed_countries, ['CA']);
+  assert.equal(params.shipping_options[0].shipping_rate_data.fixed_amount.amount, 0);
+  assert.equal(h.current.amount_total, 4200);
+  h.current = { ...h.current, status: 'complete', payment_status: 'paid' };
+  assert.equal((await handleStripeWebhook(webhookRequest('checkout.session.completed', h.current), h.deps)).status, 200);
+  const paid = await store.getOrderByCheckoutRequest(checkoutId);
+  assert.equal(paid.paymentStatus, 'approved');
+  assert.equal(paid.totalCents, 4200);
+  assert.equal(paid.paidTotalCents, 4200);
+});
 test('an unpaid checkout with the old shipping fee closes before the free-shipping offer is used', async () => {
   const h = harness({ ...config, shippingCents: 1000 });
   const old = await started(h);

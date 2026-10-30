@@ -64,6 +64,10 @@ export default async function ProductPage({ params }: Params) {
           { label: "Pearl", value: pearlDetail },
           { label: "Chain & clasp", value: "14k gold-filled" },
         ]
+      : product.slug === "sole"
+      ? [
+          { label: "Centrepiece", value: "Single polished gold bead" },
+        ]
       : [
           { label: "Stone", value: `${stoneDetail}, genuine` },
           ...(product.collection === "tide" ? [{ label: "Pearl", value: pearlDetail }] : []),
@@ -102,7 +106,7 @@ export default async function ProductPage({ params }: Params) {
       {story.paragraphs.map((para, index) => {
         const isStillWithin = product.slug === "still-within";
         const isPearlDrift = product.slug === "pearl-drift";
-        const italic = (isStillWithin || isPearlDrift) && index === 0;
+        const italic = (isStillWithin || isPearlDrift || product.slug === "sole") && index === 0;
         const bold = isStillWithin && index === 1 ||
           isPearlDrift && index === storyParagraphCount - 1;
         const [beforeName, afterName] = para.split("Pearl Drift");
@@ -246,9 +250,9 @@ export default async function ProductPage({ params }: Params) {
           {product.slug !== "still-within" && (product.slug === "pearl-drift" && storySection ? storySection : (
             <div className="rule-t w-full pt-5">
               <p className="text-[13px] font-extrabold tracking-[0.12em] uppercase">
-                The stone
+                {product.slug === "sole" ? "The meaning" : "The stone"}
               </p>
-              <p className="mt-3 max-w-[52ch] text-[15px] leading-[1.6] text-mid">
+              <p className="mt-3 max-w-[52ch] whitespace-pre-line text-[15px] leading-[1.6] text-mid">
                 {product.meaning}
               </p>
             </div>
