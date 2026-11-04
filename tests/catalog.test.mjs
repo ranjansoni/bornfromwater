@@ -73,6 +73,19 @@ test('Solé migration creates the purchasable CA$42 listing once and preserves l
   assert.deepEqual(await catalog.get('sole'), edited);
   assert.equal((await db.query("SELECT count(*)::integer AS count FROM catalog_products WHERE slug='sole'")).rows[0].count, 1);
 });
+test('Solé publishes the reviewed gallery from the previous live order and preserves custom galleries', async () => {
+  const previous = ['img-9485.jpeg', 'img-9480.jpeg', 'img-9637.jpeg', 'img-9634.jpeg', 'img-9632.jpeg']
+    .map(file => ({ src: `/products/sole/${file}`, kind: 'photo' }));
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'sole'", [JSON.stringify(previous)]);
+  const reviewed = await catalog.get('sole');
+  assert.deepEqual(reviewed.images, products.find(product => product.slug === 'sole').images);
+  assert.equal(reviewed.images.length, 10);
+  assert.equal(cardImage(reviewed).src, '/products/sole/img-9480.jpeg');
+  assert.equal(reviewed.images.at(-3).src, '/products/sole/sole-wellness-fitness-montage.png');
+  const custom = [...previous].reverse();
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'sole'", [JSON.stringify(custom)]);
+  assert.deepEqual((await catalog.get('sole')).images, custom);
+});
 test('Pearl Drift is purchasable for CA$62 and its migration preserves owner edits', async () => {
   const pearl = await catalog.get('pearl-drift');
   assert.equal(pearl.priceCents, 6200);
