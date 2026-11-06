@@ -74,7 +74,7 @@ export default async function ProductPage({ params }: Params) {
         ]),
     {
       label: "Sizing",
-      value: "Adjustable length",
+      value: "Choose your size (6.5in / 7in / 7.5in)",
     },
   ];
 
