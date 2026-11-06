@@ -19,7 +19,7 @@ const materials = [
   { label: "Water", value: "Waterproof — safe for showering and swimming" },
   {
     label: "Sizing",
-    value: "Adjustable length; choose a length in inches on the product page",
+    value: "Choose your size (6.5in / 7in / 7.5in) on the product page",
   },
 ];
 
