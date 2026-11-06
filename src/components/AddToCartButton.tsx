@@ -41,7 +41,7 @@ export function AddToCartButton({
 
   return (
     <div className="w-full space-y-3">
-      <label htmlFor={sizeId} className="block text-[12px] font-bold tracking-[0.08em] uppercase">Bracelet sizing</label>
+      <label htmlFor={sizeId} className="block text-[12px] font-bold tracking-[0.08em] uppercase">Select your size</label>
       <select id={sizeId} value={size} disabled={checking} aria-label={`Bracelet size for ${productName}`}
         onChange={event => { if (isBraceletSize(event.target.value)) { setSize(event.target.value); setAdded(false); } }}
         className="min-h-11 w-full border-2 border-divider bg-sand px-3 py-2 text-[14px]">
