@@ -217,16 +217,23 @@ test('Aquamarine Tide gallery removes duplicates, adds five photos, and leads wi
     assert.deepEqual(persisted.rows[0].images, product.images);
   }
 });
-test('Amethyst Tide leads with the cropped wrist photo and preserves custom galleries', async () => {
+test('Amethyst Tide publishes the reviewed lifestyle gallery and preserves custom galleries', async () => {
   const product = await catalog.get('amethyst-tide');
   assert.deepEqual(product.images.map(image => image.src),
     ['/products/amethyst-tide/02-cropped.png',
-      ...[1, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
-        .map(n => `/products/amethyst-tide/${String(n).padStart(2, '0')}.jpg`)]);
+      ...[1, 3, 4, 5, 6, 7, 12, 13, 15]
+        .map(n => `/products/amethyst-tide/${String(n).padStart(2, '0')}.jpg`),
+      ...['amethyst-gym.png', 'amethyst-work.png', 'amethyst-gift-box.png']
+        .map(file => `/products/amethyst-tide/${file}`)]);
   assert.equal(cardImage(product).src, '/products/amethyst-tide/02-cropped.png');
   assert.equal(product.priceCents, 4900);
   await db.exec(amethystGalleryMigration);
   assert.equal((await catalog.get('amethyst-tide')).version, product.version);
+  const previous = [{ src: '/products/amethyst-tide/02-cropped.png', kind: 'photo' },
+    ...[1, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
+      .map(n => ({ src: `/products/amethyst-tide/${String(n).padStart(2, '0')}.jpg`, kind: 'photo' }))];
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'amethyst-tide'", [JSON.stringify(previous)]);
+  assert.deepEqual((await catalog.get('amethyst-tide')).images, product.images);
   const custom = [...product.images].reverse();
   await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'amethyst-tide'", [JSON.stringify(custom)]);
   assert.deepEqual((await catalog.get('amethyst-tide')).images, custom);
