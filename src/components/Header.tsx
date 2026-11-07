@@ -23,9 +23,6 @@ export function Header() {
           <span className="text-[20px] font-extrabold tracking-[-0.02em] uppercase">
             Born From Water
           </span>
-          <span className="hidden text-[11px] tracking-[0.14em] text-mid uppercase sm:inline">
-            Vancouver, BC
-          </span>
         </Link>
 
         <div className="flex items-center gap-4">
