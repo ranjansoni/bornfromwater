@@ -35,6 +35,12 @@ const soleReviewedGallery: Product['images'] = imageManifest.sole.map(image => (
 }));
 const amethystBeforeCrop = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
   .map(number => `/products/amethyst-tide/${String(number).padStart(2, '0')}.jpg`);
+const amethystBeforeGalleryReview = [
+  '/products/amethyst-tide/02-cropped.png', amethystBeforeCrop[0], ...amethystBeforeCrop.slice(2),
+];
+const amethystReviewedGallery: Product['images'] = imageManifest['amethyst-tide'].map(image => ({
+  src: `/products/amethyst-tide/${image.file}`, kind: image.kind as Product['images'][number]['kind'],
+}));
 const aquamarineBeforeAddition = [1, 3, 4, 6, 7, 8, 10, 11]
   .map(number => `/products/aquamarine-tide/${String(number).padStart(2, '0')}.jpg`);
 const aquamarineFirstAddition: Product['images'] = [
@@ -81,8 +87,9 @@ function publishedImages(slug: string, images: Product['images']): Product['imag
       matchesGallery(images, soleBeforeGalleryReview))) {
     return soleReviewedGallery;
   }
-  if (slug === 'amethyst-tide' && matchesGallery(images, amethystBeforeCrop)) {
-    return [{ src: '/products/amethyst-tide/02-cropped.png', kind: 'photo' }, images[0], ...images.slice(2)];
+  if (slug === 'amethyst-tide' && (matchesGallery(images, amethystBeforeCrop) ||
+      matchesGallery(images, amethystBeforeGalleryReview))) {
+    return amethystReviewedGallery;
   }
   if (slug === 'aquamarine-tide') {
     const complete = matchesGallery(images, aquamarineBeforeAddition)
