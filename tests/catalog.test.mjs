@@ -217,14 +217,19 @@ test('Aquamarine Tide gallery removes duplicates, adds five photos, and leads wi
     assert.deepEqual(persisted.rows[0].images, product.images);
   }
 });
-test('Amethyst Tide gallery removes only the 11th image', async () => {
+test('Amethyst Tide leads with the cropped wrist photo and preserves custom galleries', async () => {
   const product = await catalog.get('amethyst-tide');
   assert.deepEqual(product.images.map(image => image.src),
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
-      .map(n => `/products/amethyst-tide/${String(n).padStart(2, '0')}.jpg`));
+    ['/products/amethyst-tide/02-cropped.png',
+      ...[1, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
+        .map(n => `/products/amethyst-tide/${String(n).padStart(2, '0')}.jpg`)]);
+  assert.equal(cardImage(product).src, '/products/amethyst-tide/02-cropped.png');
   assert.equal(product.priceCents, 4900);
   await db.exec(amethystGalleryMigration);
   assert.equal((await catalog.get('amethyst-tide')).version, product.version);
+  const custom = [...product.images].reverse();
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'amethyst-tide'", [JSON.stringify(custom)]);
+  assert.deepEqual((await catalog.get('amethyst-tide')).images, custom);
 });
 test('repeatable migration preserves owner edits, photos, historical and pending orders', async () => {
   const cart = validateCart([{ slug: original.slug, quantity: 1 }], await catalog.list());
