@@ -170,12 +170,11 @@ export default async function Home() {
       <section className="rule-b grid grid-cols-1 gap-12 px-6 py-17 md:grid-cols-[1fr_2fr] md:px-12">
         <div>
           <p className="text-[12px] tracking-[0.16em] text-mid uppercase">
-            Reviews
+            Customer stories
           </p>
-          <p className="mt-4 text-[48px] leading-none font-extrabold">5.0</p>
-          <p className="mt-3 text-[13px] text-mid">
-            ★★★★★ · 2 customer reviews
-          </p>
+          <h2 className="mt-4 max-w-[16ch] text-[32px] leading-[1.1] font-extrabold tracking-[-0.02em] md:text-[40px]">
+            Kind words from our customers
+          </h2>
         </div>
         <div className="grid gap-10 lg:grid-cols-2 lg:gap-12">
           {reviews.map((review) => (
