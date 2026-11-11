@@ -14,18 +14,18 @@ const stats = [
 const care = [
   {
     kicker: "01 — Materials",
-    h: "14k gold-filled, not plated",
-    p: "A bonded layer of solid gold over brass — thicker than plating, made to hold its colour through daily wear.",
+    h: "Genuine 14k gold-filled",
+    p: "The warmth of real gold, crafted for everyday wear.",
   },
   {
-    kicker: "02 — Water",
-    h: "Care for each material",
-    p: "Gold-filled metal handles everyday moisture. Wipe pearl pieces gently after wear and store them dry.",
+    kicker: "02 — Everyday Wear",
+    h: "Water-resistant. Tarnish-resistant.",
+    p: "Made to be worn and enjoyed, with a little care along the way.",
   },
   {
     kicker: "03 — Care",
-    h: "Keep it away from chemicals",
-    p: "Put jewellery on last, after perfume and lotion. Store flat and dry, away from direct sun.",
+    h: "Simple care, lasting beauty",
+    p: "Wipe gently after wear and store separately in your pouch or box.",
   },
 ];
 
