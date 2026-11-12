@@ -41,6 +41,8 @@ const amethystBeforeGalleryReview = [
 const amethystReviewedGallery: Product['images'] = imageManifest['amethyst-tide'].map(image => ({
   src: `/products/amethyst-tide/${image.file}`, kind: image.kind as Product['images'][number]['kind'],
 }));
+const peridotBeforeRemoval = ['01.jpg', '02.jpg', '03.jpg', '06.jpg', '07.jpg', '08.jpg', '09.png', '10.png']
+  .map(file => `/products/peridot-tide/${file}`);
 const aquamarineBeforeAddition = [1, 3, 4, 6, 7, 8, 10, 11]
   .map(number => `/products/aquamarine-tide/${String(number).padStart(2, '0')}.jpg`);
 const aquamarineFirstAddition: Product['images'] = [
@@ -90,6 +92,9 @@ function publishedImages(slug: string, images: Product['images']): Product['imag
   if (slug === 'amethyst-tide' && (matchesGallery(images, amethystBeforeCrop) ||
       matchesGallery(images, amethystBeforeGalleryReview))) {
     return amethystReviewedGallery;
+  }
+  if (slug === 'peridot-tide' && matchesGallery(images, peridotBeforeRemoval)) {
+    return images.filter((_, index) => index !== 1 && index !== 4);
   }
   if (slug === 'aquamarine-tide') {
     const complete = matchesGallery(images, aquamarineBeforeAddition)
