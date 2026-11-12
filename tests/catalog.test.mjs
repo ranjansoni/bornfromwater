@@ -238,6 +238,18 @@ test('Amethyst Tide publishes the reviewed lifestyle gallery and preserves custo
   await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'amethyst-tide'", [JSON.stringify(custom)]);
   assert.deepEqual((await catalog.get('amethyst-tide')).images, custom);
 });
+test('Peridot Tide removes the previous second and fifth images and preserves custom galleries', async () => {
+  const previous = ['01.jpg', '02.jpg', '03.jpg', '06.jpg', '07.jpg', '08.jpg', '09.png', '10.png']
+    .map(file => ({ src: `/products/peridot-tide/${file}`, kind: 'photo' }));
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'peridot-tide'", [JSON.stringify(previous)]);
+  const product = await catalog.get('peridot-tide');
+  assert.deepEqual(product.images.map(image => image.src),
+    ['01.jpg', '03.jpg', '06.jpg', '08.jpg', '09.png', '10.png'].map(file => `/products/peridot-tide/${file}`));
+  assert.deepEqual(product.images, products.find(product => product.slug === 'peridot-tide').images);
+  const custom = [...product.images].reverse();
+  await db.query("UPDATE catalog_products SET images = $1::jsonb WHERE slug = 'peridot-tide'", [JSON.stringify(custom)]);
+  assert.deepEqual((await catalog.get('peridot-tide')).images, custom);
+});
 test('repeatable migration preserves owner edits, photos, historical and pending orders', async () => {
   const cart = validateCart([{ slug: original.slug, quantity: 1 }], await catalog.list());
   await orders.createPendingOrder(cart.lines, cart.totalCents, randomUUID(), false, config.accountId);
